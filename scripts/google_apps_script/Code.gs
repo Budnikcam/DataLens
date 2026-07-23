@@ -95,7 +95,7 @@ function debugBuild() {
 }
 
 function buildDashboardJson() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById("1yzwXXxW1cVvc8t96a0uVXhz_KXR_thcd113y2U2tR9w");
   var t1 = getSheetValues_(ss, SHEET_TEST1);
   var t2 = getSheetValues_(ss, SHEET_TEST2);
   if (!t1.length) {
@@ -143,7 +143,7 @@ function buildDashboardJson() {
   return {
     project: {
       name: general.object_name || "ЖК «Северный»",
-      meta: "Генподряд · " + gen + " · срок до " + endLbl,
+      meta: "Генподряд · " + gen + " · срок " + endLbl,
       readiness_fact: readinessFact,
       readiness_plan: readinessPlan,
       delta_pp: deltaPp,
