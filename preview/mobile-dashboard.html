@@ -1338,6 +1338,15 @@
 
     async function boot() {
       bindUI();
+      // Prefer locally saved edits (same browser), else server data.json
+      try {
+        const raw = localStorage.getItem("datalens-data-current");
+        if (raw) {
+          DATA = JSON.parse(raw);
+          paint();
+          return;
+        }
+      } catch (_) { /* fall through */ }
       try {
         const res = await fetch("data.json", { cache: "no-store" });
         if (!res.ok) throw new Error(String(res.status));

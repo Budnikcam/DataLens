@@ -281,6 +281,25 @@
       color: var(--muted);
       margin: 0;
     }
+    .publish-box {
+      display: grid;
+      gap: 12px;
+    }
+    .publish-box .lead {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--ink);
+    }
+    .publish-box .hint {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .btn-publish {
+      width: 100%;
+      font-size: 1rem;
+      padding: 16px 18px;
+    }
     .versions-list {
       display: grid;
       gap: 12px;
@@ -298,6 +317,7 @@
     }
     .ver .meta {
       font-size: 0.88rem;
+      flex: 1 1 180px;
     }
     .ver .meta strong {
       display: block;
@@ -308,10 +328,52 @@
       color: var(--muted);
       font-size: 0.8rem;
     }
+    .ver .ver-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
     .empty {
       color: var(--muted);
       font-size: 0.9rem;
       margin: 0;
+    }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(88px + var(--safe-b));
+      transform: translateX(-50%) translateY(12px);
+      background: var(--kpi);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 12px 22px;
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(44, 95, 74, 0.28);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 40;
+      white-space: nowrap;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    details.dev-extra {
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: transparent;
+    }
+    details.dev-extra > summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    details.dev-extra[open] > summary {
+      margin-bottom: 14px;
     }
     .hidden { display: none !important; }
     details.array-block > summary {
@@ -346,7 +408,7 @@
       <div class="btn-row" style="justify-content:center; margin-top:20px">
         <button type="button" class="btn btn-primary" id="gate-enter">Войти</button>
       </div>
-      <p class="warn">Не делитесь паролем в публичных чатах. Токен GitHub сюда не вводите — только на следующем экране, в поле PAT.</p>
+      <p class="warn">Не делитесь паролем в публичных чатах.</p>
     </div>
   </div>
 
@@ -355,30 +417,31 @@
     <header class="top">
       <div>
         <h1>Редактор данных</h1>
-        <p class="sub">Каждое сохранение — новый файл. Старые версии не удаляются.</p>
+        <p class="sub">Сохранение мгновенное. Каждое сохранение — новая версия; старые не удаляются.</p>
       </div>
       <a class="back" href="./">← К дашборду</a>
     </header>
 
     <div id="status" class="status" role="status"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite">Сохранено</div>
 
     <section class="card">
-      <h2>Сохранение в GitHub</h2>
-      <p class="section-lead">Опционально. Без токена можно скачать файл и передать разработчику.</p>
-      <div class="pat-box">
-        <div>
-          <label for="pat">Fine-grained PAT (contents:write на Budnikcam/DataLens)</label>
-          <input id="pat" type="password" autocomplete="off" placeholder="github_pat_… или ghp_…" />
-        </div>
-        <p class="hint">Токен хранится только в этом браузере (localStorage) и никуда кроме api.github.com не отправляется. Как создать — в docs/HOW_IT_WORKS.md.</p>
-        <div class="btn-row">
-          <button type="button" class="btn btn-soft" id="pat-save">Запомнить токен</button>
-          <button type="button" class="btn btn-ghost" id="pat-clear">Забыть токен</button>
-        </div>
+      <h2>Сохранение</h2>
+      <p class="section-lead">Данные хранятся в этом браузере. Старые версии накапливаются и не удаляются при сохранении.</p>
+      <div class="grid">
         <div>
           <label for="note">Заметка к версии (необязательно)</label>
           <input id="note" type="text" maxlength="200" placeholder="Например: обновили готовность и риски" />
         </div>
+      </div>
+    </section>
+
+    <section class="card" id="publish-card">
+      <h2>Публикация для всех</h2>
+      <div class="publish-box">
+        <p class="lead">Чтобы все посетители сайта видели ваши правки, скачайте файл и отправьте Ивану (или замените <code>data.json</code> на сервере).</p>
+        <button type="button" class="btn btn-primary btn-publish" id="btn-publish">Скачать для публикации</button>
+        <p class="hint">Правки в редакторе видны вам сразу на дашборде в <em>этом</em> браузере. У других устройств — после обновления серверного файла.</p>
       </div>
     </section>
 
@@ -451,16 +514,34 @@
 
     <section class="card">
       <h2>Версии</h2>
-      <p class="section-lead">Список из versions/manifest.json. «Сделать текущей» записывает снимок в data.json.</p>
+      <p class="section-lead">История сохранений в этом браузере. Старые версии не удаляются.</p>
       <div id="versions-list" class="versions-list">
         <p class="empty">Загрузка…</p>
       </div>
     </section>
 
+    <section class="card">
+      <details class="dev-extra" id="dev-extra">
+        <summary>Дополнительно для разработчика</summary>
+        <div class="pat-box">
+          <p class="hint">Опционально: запись напрямую в GitHub. Обычному редактору не нужно.</p>
+          <div>
+            <label for="pat">Fine-grained PAT (contents:write на Budnikcam/DataLens)</label>
+            <input id="pat" type="password" autocomplete="off" placeholder="github_pat_… или ghp_…" />
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-soft" id="pat-save">Запомнить токен</button>
+            <button type="button" class="btn btn-ghost" id="pat-clear">Забыть токен</button>
+            <button type="button" class="btn" id="btn-github">Сохранить в GitHub</button>
+          </div>
+        </div>
+      </details>
+    </section>
+
     <div class="actions-bar">
       <div class="inner">
+        <button type="button" class="btn btn-primary" id="btn-save">Сохранить</button>
         <button type="button" class="btn" id="btn-download">Скачать версию</button>
-        <button type="button" class="btn btn-primary" id="btn-github">Сохранить как новую версию (GitHub)</button>
       </div>
     </div>
   </div>
@@ -471,9 +552,13 @@
     const GH_REPO = "DataLens";
     const GH_BRANCH = "main";
     const LS_PAT = "datalens_gh_pat";
+    const LS_CURRENT = "datalens-data-current";
+    const LS_VERSIONS = "datalens-data-versions";
+    const VERSIONS_SOFT_CAP = 50;
     const SS_OK = "datalens_edit_ok";
 
     let DATA = null;
+    let toastTimer = null;
 
     const $ = (id) => document.getElementById(id);
 
@@ -488,6 +573,54 @@
       const el = $("status");
       el.className = "status";
       el.textContent = "";
+    }
+
+    function showToast(msg) {
+      const el = $("toast");
+      el.textContent = msg || "Сохранено";
+      el.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function readVersions() {
+      try {
+        const raw = localStorage.getItem(LS_VERSIONS);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function writeVersions(list) {
+      localStorage.setItem(LS_VERSIONS, JSON.stringify(list));
+    }
+
+    function readCurrent() {
+      try {
+        const raw = localStorage.getItem(LS_CURRENT);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function writeCurrent(data) {
+      localStorage.setItem(LS_CURRENT, JSON.stringify(data));
+    }
+
+    function appendVersion(entry) {
+      const list = readVersions();
+      list.push(entry);
+      writeVersions(list);
+      return list;
     }
 
     function field(label, name, value, type = "text") {
@@ -871,7 +1004,142 @@
       URL.revokeObjectURL(a.href);
     }
 
-    /* ---------- GitHub Contents API ---------- */
+    function downloadPublishFile(data) {
+      downloadJson(data, "data.json");
+    }
+
+    function saveLocal(opts) {
+      const note = (opts && opts.note != null ? opts.note : ($("note").value || "")).trim();
+      const data = opts && opts.data ? opts.data : collectFromDom();
+      DATA = data;
+      const id = "data-" + stamp();
+      const savedAt = new Date().toISOString();
+      writeCurrent(data);
+      appendVersion({
+        id,
+        savedAt,
+        note: note || (opts && opts.restoreNote) || "",
+        data: deepClone(data),
+      });
+      if (!(opts && opts.keepNote)) $("note").value = "";
+      renderVersions();
+      return { id, savedAt, data };
+    }
+
+    function savePrimary() {
+      try {
+        saveLocal({});
+        showToast("Сохранено");
+        clearStatus();
+        showStatus(
+          "Сохранено в этом браузере. Дашборд подхватит данные при обновлении. Чтобы все посетители видели правки — нажмите «Скачать для публикации» и отправьте файл Ивану.",
+          "ok"
+        );
+        $("publish-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } catch (err) {
+        console.error(err);
+        showStatus("Не удалось сохранить: " + (err.message || String(err)), "err");
+      }
+    }
+
+    function makeCurrent(id) {
+      const list = readVersions();
+      const ver = list.find((v) => v.id === id);
+      if (!ver || !ver.data) {
+        showStatus("Версия не найдена.", "err");
+        return;
+      }
+      const data = deepClone(ver.data);
+      DATA = data;
+      writeCurrent(data);
+      // Restore snapshot: append a copy so history stays intact
+      appendVersion({
+        id: "data-" + stamp(),
+        savedAt: new Date().toISOString(),
+        note: "Восстановление: " + (ver.note || ver.id),
+        data: deepClone(data),
+      });
+      renderAll();
+      renderVersions();
+      showToast("Сохранено");
+      showStatus("Версия сделана текущей. Снимок восстановления добавлен в историю.", "ok");
+    }
+
+    function downloadVersionById(id) {
+      const ver = readVersions().find((v) => v.id === id);
+      if (!ver || !ver.data) {
+        showStatus("Версия не найдена.", "err");
+        return;
+      }
+      const name = (ver.id || "data-" + stamp()) + ".json";
+      downloadJson(ver.data, name);
+      showStatus("Скачан файл " + name, "ok");
+    }
+
+    function downloadAllVersionsArchive() {
+      const list = readVersions();
+      if (!list.length) {
+        showStatus("Пока нет версий для скачивания.", "info");
+        return;
+      }
+      downloadJson({ versions: list }, "datalens-versions-" + stamp() + ".json");
+      showStatus("Скачан архив всех версий.", "ok");
+    }
+
+    function renderVersions() {
+      const box = $("versions-list");
+      const list = readVersions().slice().reverse();
+      if (!list.length) {
+        box.innerHTML = '<p class="empty">Пока нет сохранённых версий — нажмите «Сохранить».</p>';
+        return;
+      }
+      box.innerHTML = "";
+      if (list.length > VERSIONS_SOFT_CAP) {
+        const tip = document.createElement("p");
+        tip.className = "empty";
+        tip.style.marginBottom = "4px";
+        tip.textContent =
+          "Версий: " + list.length + ". Можно скачать архив — ничего не удаляется автоматически.";
+        box.appendChild(tip);
+        const arch = document.createElement("button");
+        arch.type = "button";
+        arch.className = "btn btn-soft";
+        arch.textContent = "Скачать все версии";
+        arch.style.marginBottom = "8px";
+        arch.addEventListener("click", downloadAllVersionsArchive);
+        box.appendChild(arch);
+      }
+      list.forEach((v) => {
+        const row = document.createElement("div");
+        row.className = "ver";
+        const when = v.savedAt
+          ? new Date(v.savedAt).toLocaleString("ru-RU", { dateStyle: "medium", timeStyle: "short" })
+          : v.id;
+        row.innerHTML = `
+          <div class="meta">
+            <strong>${v.id || "версия"}</strong>
+            <span>${when}${v.note ? " · " + v.note : ""}</span>
+          </div>`;
+        const actions = document.createElement("div");
+        actions.className = "ver-actions";
+        const btnCurrent = document.createElement("button");
+        btnCurrent.type = "button";
+        btnCurrent.className = "btn btn-soft";
+        btnCurrent.textContent = "Сделать текущей";
+        btnCurrent.addEventListener("click", () => makeCurrent(v.id));
+        const btnDl = document.createElement("button");
+        btnDl.type = "button";
+        btnDl.className = "btn";
+        btnDl.textContent = "Скачать эту версию";
+        btnDl.addEventListener("click", () => downloadVersionById(v.id));
+        actions.appendChild(btnCurrent);
+        actions.appendChild(btnDl);
+        row.appendChild(actions);
+        box.appendChild(row);
+      });
+    }
+
+    /* ---------- GitHub Contents API (optional, developer) ---------- */
     function getPat() {
       return ($("pat").value || localStorage.getItem(LS_PAT) || "").trim();
     }
@@ -932,28 +1200,25 @@
     async function saveToGitHub() {
       const pat = getPat();
       if (!pat) {
-        showStatus("Вставьте GitHub PAT и нажмите «Запомнить токен», либо используйте «Скачать версию».", "err");
+        showStatus("Вставьте GitHub PAT или используйте обычное «Сохранить» / «Скачать для публикации».", "err");
         return;
       }
       const btn = $("btn-github");
       btn.disabled = true;
       clearStatus();
-      showStatus("Сохраняем новую версию…", "info");
+      showStatus("Сохраняем в GitHub…", "info");
 
       try {
-        const data = collectFromDom();
-        DATA = data;
-        const filename = versionFilename();
+        // Also keep local history
+        const { data, id } = saveLocal({});
+        const filename = id + ".json";
         const path = "versions/" + filename;
         const contentStr = JSON.stringify(data, null, 2) + "\n";
-        const note = ($("note").value || "").trim();
-        const id = filename.replace(/\.json$/, "");
+        const note = "";
         const savedAt = new Date().toISOString();
 
-        // 1) New version file (never overwrite — unique name)
         await ghPut(path, contentStr, `data: add version ${filename}`, pat);
 
-        // 2) Append manifest
         const manFile = await ghGet("versions/manifest.json", pat);
         let manifest = { versions: [] };
         if (manFile && manFile.content) {
@@ -970,7 +1235,6 @@
           manFile?.sha
         );
 
-        // 3) Update active data.json (preview too)
         const root = await ghGet("data.json", pat);
         await ghPut(
           "data.json",
@@ -991,112 +1255,16 @@
         }
 
         showStatus(
-          "Сохранено. Новая версия: " + filename +
-            ". Сайт на Pages обновится через 1–2 минуты — обновите страницу дашборда.",
+          "Записано в GitHub: " + filename +
+            ". Pages обновится через 1–2 минуты.",
           "ok"
         );
-        $("note").value = "";
-        await loadVersions();
+        showToast("Сохранено");
       } catch (err) {
         console.error(err);
         showStatus("Ошибка GitHub: " + (err.message || String(err)), "err");
       } finally {
         btn.disabled = false;
-      }
-    }
-
-    async function makeCurrent(filename) {
-      const pat = getPat();
-      if (!pat) {
-        // Offline path: download that version as data.json suggestion
-        try {
-          const res = await fetch("versions/" + filename, { cache: "no-store" });
-          if (!res.ok) throw new Error(String(res.status));
-          const data = await res.json();
-          downloadJson(data, "data.json");
-          showStatus(
-            "Токен не задан — скачан файл версии как data.json. Загрузите его в репозиторий или вставьте PAT для записи через API.",
-            "info"
-          );
-        } catch (e) {
-          showStatus("Не удалось скачать версию: " + e.message, "err");
-        }
-        return;
-      }
-
-      clearStatus();
-      showStatus("Делаем текущей: " + filename + "…", "info");
-      try {
-        const ver = await ghGet("versions/" + filename, pat);
-        if (!ver || !ver.content) throw new Error("Файл версии не найден");
-        const contentStr = fromBase64(ver.content.replace(/\n/g, ""));
-        // Normalize formatting
-        const parsed = JSON.parse(contentStr);
-        const pretty = JSON.stringify(parsed, null, 2) + "\n";
-
-        const root = await ghGet("data.json", pat);
-        await ghPut(
-          "data.json",
-          pretty,
-          `data: restore current from ${filename}`,
-          pat,
-          root?.sha
-        );
-        const preview = await ghGet("preview/data.json", pat);
-        if (preview) {
-          await ghPut(
-            "preview/data.json",
-            pretty,
-            `data: sync preview from ${filename}`,
-            pat,
-            preview.sha
-          );
-        }
-
-        DATA = parsed;
-        renderAll();
-        showStatus(
-          "Версия " + filename + " записана в data.json. Pages обновится через 1–2 минуты.",
-          "ok"
-        );
-      } catch (err) {
-        showStatus("Ошибка: " + (err.message || String(err)), "err");
-      }
-    }
-
-    async function loadVersions() {
-      const box = $("versions-list");
-      try {
-        const res = await fetch("versions/manifest.json", { cache: "no-store" });
-        if (!res.ok) throw new Error(String(res.status));
-        const man = await res.json();
-        const list = Array.isArray(man.versions) ? man.versions.slice().reverse() : [];
-        if (!list.length) {
-          box.innerHTML = '<p class="empty">Пока нет сохранённых версий — сделайте первое сохранение.</p>';
-          return;
-        }
-        box.innerHTML = "";
-        list.forEach((v) => {
-          const row = document.createElement("div");
-          row.className = "ver";
-          const when = v.savedAt
-            ? new Date(v.savedAt).toLocaleString("ru-RU", { dateStyle: "medium", timeStyle: "short" })
-            : v.id;
-          row.innerHTML = `
-            <div class="meta">
-              <strong>${v.filename || v.id}</strong>
-              <span>${when}${v.note ? " · " + v.note : ""}</span>
-            </div>`;
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "btn btn-soft";
-          btn.textContent = "Сделать текущей";
-          btn.addEventListener("click", () => makeCurrent(v.filename));
-          row.appendChild(btn);
-          box.appendChild(row);
-        });
-      } catch (_) {
-        box.innerHTML = '<p class="empty">Не удалось загрузить manifest.json</p>';
       }
     }
 
@@ -1129,11 +1297,22 @@
         showStatus("Токен удалён из браузера.", "info");
       });
 
+      $("btn-save").addEventListener("click", () => savePrimary());
+
       $("btn-download").addEventListener("click", () => {
         const data = collectFromDom();
         const name = versionFilename();
         downloadJson(data, name);
-        showStatus("Скачан файл " + name + ". Старые версии на сервере не затрагиваются.", "ok");
+        showStatus("Скачан файл " + name + ". Локальные версии не затронуты.", "ok");
+      });
+
+      $("btn-publish").addEventListener("click", () => {
+        const data = collectFromDom();
+        downloadPublishFile(data);
+        showStatus(
+          "Скачан data.json. Отправьте файл Ивану — он заменит данные на сайте для всех посетителей.",
+          "ok"
+        );
       });
 
       $("btn-github").addEventListener("click", () => saveToGitHub());
@@ -1141,7 +1320,6 @@
       document.querySelectorAll("[data-add]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const kind = btn.dataset.add;
-          // Flush current edits into DATA first
           const collected = collectFromDom();
           DATA = collected;
           if (kind === "supply") {
@@ -1193,24 +1371,29 @@
 
     async function bootEditor() {
       bindEditor();
-      try {
-        const res = await fetch("data.json", { cache: "no-store" });
-        if (!res.ok) throw new Error(String(res.status));
-        DATA = await res.json();
-      } catch (e) {
-        showStatus("Не удалось загрузить data.json: " + e.message, "err");
-        DATA = {
-          project: {},
-          smrDays: {},
-          supply: [],
-          finance: [],
-          labor: [],
-          risks: [],
-          tasks: [],
-        };
+      const local = readCurrent();
+      if (local) {
+        DATA = local;
+      } else {
+        try {
+          const res = await fetch("data.json", { cache: "no-store" });
+          if (!res.ok) throw new Error(String(res.status));
+          DATA = await res.json();
+        } catch (e) {
+          showStatus("Не удалось загрузить data.json: " + e.message, "err");
+          DATA = {
+            project: {},
+            smrDays: {},
+            supply: [],
+            finance: [],
+            labor: [],
+            risks: [],
+            tasks: [],
+          };
+        }
       }
       renderAll();
-      loadVersions();
+      renderVersions();
     }
 
     checkGate();
