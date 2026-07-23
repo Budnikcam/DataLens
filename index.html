@@ -346,6 +346,118 @@
 
     .task-card { padding: 4px 14px 8px; }
 
+    .compact-row.task-tap {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 8px;
+      margin: 0 -6px;
+      padding-left: 6px;
+      padding-right: 6px;
+      transition: background .15s ease;
+    }
+    .compact-row.task-tap:hover,
+    .compact-row.task-tap:focus-visible {
+      background: rgba(44, 95, 74, 0.06);
+      outline: none;
+    }
+    .compact-row.task-tap:active {
+      background: rgba(44, 95, 74, 0.1);
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 0 4px;
+      margin: 0 0 16px;
+      border: 0;
+      background: transparent;
+      color: var(--kpi);
+      font-family: Inter, system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .back-btn:hover,
+    .back-btn:focus-visible {
+      color: var(--ink);
+      outline: none;
+    }
+    .back-btn .chev {
+      font-size: 18px;
+      line-height: 1;
+      margin-top: -1px;
+    }
+
+    .detail-card {
+      padding: 20px 18px 22px;
+    }
+    .detail-title {
+      margin: 0 0 14px;
+      font-family: Lora, Georgia, serif;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .detail-desc {
+      margin: 0 0 22px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--ink);
+      font-weight: 400;
+    }
+    .detail-meta {
+      display: grid;
+      gap: 14px;
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+    .detail-meta .row {
+      display: grid;
+      gap: 4px;
+    }
+    .detail-meta dt {
+      margin: 0;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .detail-meta dd {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+    .detail-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .detail-status .dot {
+      width: 8px;
+      height: 8px;
+    }
+    .detail-block {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
     .status-chart {
       display: grid;
       grid-template-columns: 120px 1fr;
@@ -453,6 +565,13 @@
             <div class="compact-list" id="task-list"></div>
           </div>
         </section>
+
+        <section id="task-detail" class="panel" hidden role="tabpanel" aria-label="Карточка задачи">
+          <button type="button" class="back-btn" id="task-back" aria-label="Назад к списку задач">
+            <span class="chev" aria-hidden="true">‹</span> Назад
+          </button>
+          <div class="card detail-card" id="task-detail-body"></div>
+        </section>
       </div>
     </div>
   </div>
@@ -492,25 +611,26 @@
         { t: "Неучтенный объём · ПСД", m: "15.01" }
       ],
       tasks: [
-        { t: "Рентабельность АО «Успех»", m: "22.07", status: "В работе" },
-        { t: "Стратегия ЖК «Северный»", m: "10.07", status: "В работе" },
-        { t: "НДС +2% · разногласия", m: "26.07", status: "В работе" },
-        { t: "Доп. соглашения (НДС)", m: "24.07", status: "В работе" },
-        { t: "Сокращение расходов", m: "еженед.", status: "В работе" },
-        { t: "ЖК «Солнце» · благоустр.", m: "28.07", status: "В работе" },
-        { t: "Контракты 1С", m: "пт", status: "В работе" },
-        { t: "Материалы на балансе", m: "еженед.", status: "В работе" },
-        { t: "Договоры с субподрядчиками", m: "03.07", status: "В работе" },
-        { t: "Папки с ответами · ВПР", m: "пост.", status: "В работе" },
-        { t: "Претензионная работа", m: "пн", status: "В работе" },
-        { t: "Приказ · ответственность", m: "03.07", status: "В работе" },
-        { t: "АО «Прут» · письмо", m: "20.03", status: "Не исполнено" },
-        { t: "ЖК «Берег» · справка", m: "03.07", status: "В работе" }
+        { t: "Рентабельность АО «Успех»", description: "Разработать критерии АО «Успех» по рентабельности и прибыли", responsible: "Иванова А.А.", m: "22.07", deadline: "2026-07-22", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "Стратегия ЖК «Северный»", description: "Стратегия по реализации проектов ЖК «Северный»", responsible: "Куприянов И.Г. / Овлякин Н.П. / Директора", m: "10.07", deadline: "2026-07-10", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "НДС +2% · разногласия", description: "Внести в таблицу разногласий информацию по увеличению НДС на 2%", responsible: "Иванова А.А.", m: "26.07", deadline: "2026-07-26", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "Доп. соглашения (НДС)", description: "Информация по доп. соглашениям с подрядчиками из-за НДС", responsible: "Иванова А.А.", m: "24.07", deadline: "2026-07-24", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "Сокращение расходов", description: "Организовать работу по сокращению расходов", responsible: "Криворуков", m: "еженед.", deadline: "", deadline_type: "еженедельно", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "ЖК «Солнце» · благоустр.", description: "Информация по благоустройству ЖК «Солнце»", responsible: "Баранов В.Б.", m: "28.07", deadline: "2026-07-28", deadline_type: "дата", status: "В работе", block: "ЗАКУПКИ/КАЦ" },
+        { t: "Контракты 1С", description: "Статус подписания контрактов в 1С по объектам ИС", responsible: "Баранов В.Б.", m: "пт", deadline: "", deadline_type: "еженедельно (пт)", status: "В работе", block: "ЗАКУПКИ/КАЦ" },
+        { t: "Материалы на балансе", description: "Доклад по реализации материалов на балансе", responsible: "Баранов В.Б.", m: "еженед.", deadline: "", deadline_type: "еженедельно", status: "В работе", block: "ЗАКУПКИ/КАЦ" },
+        { t: "Договоры с субподрядчиками", description: "Статус по договорам с субподрядчиками", responsible: "Абрамов П.Р.", m: "03.07", deadline: "2026-07-03", deadline_type: "дата", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "Папки с ответами · ВПР", description: "Папки с ответами (перенос сроков остановка ВПР)", responsible: "Абрамов П.Р.", m: "пост.", deadline: "", deadline_type: "постоянно", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "Претензионная работа", description: "Доклад по претензионной работе юр. отдела", responsible: "Абрамов П.Р.", m: "пн", deadline: "", deadline_type: "еженедельно (пн)", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "Приказ · ответственность", description: "Приказ об усилении ответственности директоров за достоверность информации", responsible: "Трушкина М.В.", m: "03.07", deadline: "2026-07-03", deadline_type: "дата", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "АО «Прут» · письмо", description: "Письмо в АО «Прут» по оценке совместной работы", responsible: "Абрамов П.Р.", m: "20.03", deadline: "2026-03-20", deadline_type: "дата", status: "Не исполнено", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "ЖК «Берег» · справка", description: "Справка по проекту ЖК «Берег»", responsible: "Абрамов П.Р.", m: "03.07", deadline: "2026-07-03", deadline_type: "дата", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ / План на неделю" }
       ]
     };
 
     let DATA = FALLBACK;
     let filter = "open";
+    let detailOpen = false;
 
     const fmtPct = (n, digits = 2) =>
       Number(n).toLocaleString("ru-RU", { minimumFractionDigits: digits, maximumFractionDigits: digits }) + "%";
@@ -520,6 +640,75 @@
     const pctBar = (fact, plan) => Math.min(100, Math.max(0, plan ? (fact / plan) * 100 : 0));
     const esc = (s) => String(s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+    function deadlineLabel(task) {
+      if (task.m) return task.m;
+      if (task.deadline_type && task.deadline_type !== "дата") return task.deadline_type;
+      if (task.deadline) return task.deadline;
+      return "—";
+    }
+
+    function showPanel(id) {
+      document.querySelectorAll(".panel").forEach(p => {
+        p.classList.remove("active");
+        p.hidden = true;
+      });
+      const panel = document.getElementById(id);
+      panel.classList.add("active");
+      panel.hidden = false;
+    }
+
+    function openTaskDetail(index) {
+      const task = (DATA.tasks || [])[index];
+      if (!task) return;
+      const desc = (task.description || task.t || "").trim() || task.t;
+      const responsible = (task.responsible || "").trim() || "—";
+      const status = task.status || "—";
+      const crit = status === "Не исполнено";
+      const block = (task.block || "").trim();
+      document.getElementById("task-detail-body").innerHTML = `
+        <h2 class="detail-title">${esc(task.t)}</h2>
+        <p class="detail-desc">${esc(desc)}</p>
+        <dl class="detail-meta">
+          <div class="row">
+            <dt>Ответственный</dt>
+            <dd>${esc(responsible)}</dd>
+          </div>
+          <div class="row">
+            <dt>Срок</dt>
+            <dd>${esc(deadlineLabel(task))}</dd>
+          </div>
+          <div class="row">
+            <dt>Статус</dt>
+            <dd>
+              <span class="detail-status">
+                <span class="dot" style="background:${crit ? "var(--critical)" : "var(--kpi)"}"></span>
+                ${esc(status)}
+              </span>
+            </dd>
+          </div>
+          ${block ? `<div class="row"><dt>Блок</dt><dd class="detail-block">${esc(block)}</dd></div>` : ""}
+        </dl>`;
+      detailOpen = true;
+      document.querySelectorAll(".nav button").forEach(b => {
+        const on = b.dataset.tab === "tasks";
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      showPanel("task-detail");
+      document.getElementById("phone-scroll")?.scrollTo?.(0, 0);
+      document.querySelector(".phone")?.scrollTo?.(0, 0);
+    }
+
+    function closeTaskDetail() {
+      detailOpen = false;
+      document.querySelectorAll(".nav button").forEach(b => {
+        const on = b.dataset.tab === "tasks";
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      showPanel("tasks");
+    }
 
     function gaugePoint(p) {
       const r = 76, cx = 100, cy = 100;
@@ -673,39 +862,36 @@
 
     function renderTasks() {
       const list = document.getElementById("task-list");
-      const rows = (DATA.tasks || []).filter(x => {
-        if (filter === "all") return true;
-        if (filter === "fail") return x.status === "Не исполнено";
-        return x.status === "В работе";
-      });
+      const rows = (DATA.tasks || [])
+        .map((x, i) => ({ ...x, _i: i }))
+        .filter(x => {
+          if (filter === "all") return true;
+          if (filter === "fail") return x.status === "Не исполнено";
+          return x.status === "В работе";
+        });
       if (!rows.length) {
         list.innerHTML = `<div class="compact-row"><span></span><span class="t" style="color:var(--muted)">Нет задач</span><span></span></div>`;
         return;
       }
       list.innerHTML = rows.map(x => `
-        <div class="compact-row">
+        <button type="button" class="compact-row task-tap" data-task-index="${x._i}" aria-label="Открыть задачу: ${esc(x.t)}">
           <span class="dot" style="background:${x.status === "Не исполнено" ? "var(--critical)" : "var(--kpi)"}"></span>
           <span class="t">${esc(x.t)}</span>
           <span class="m">${esc(x.m)}</span>
-        </div>`).join("");
+        </button>`).join("");
     }
 
     function bindUI() {
       document.querySelectorAll(".nav button").forEach(btn => {
         btn.addEventListener("click", () => {
+          detailOpen = false;
           document.querySelectorAll(".nav button").forEach(b => {
             b.classList.remove("active");
             b.setAttribute("aria-selected", "false");
           });
-          document.querySelectorAll(".panel").forEach(p => {
-            p.classList.remove("active");
-            p.hidden = true;
-          });
           btn.classList.add("active");
           btn.setAttribute("aria-selected", "true");
-          const panel = document.getElementById(btn.dataset.tab);
-          panel.classList.add("active");
-          panel.hidden = false;
+          showPanel(btn.dataset.tab);
         });
       });
 
@@ -716,6 +902,16 @@
         chip.classList.add("active");
         filter = chip.dataset.filter;
         renderTasks();
+      });
+
+      document.getElementById("task-list").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-task-index]");
+        if (!btn) return;
+        openTaskDetail(Number(btn.dataset.taskIndex));
+      });
+
+      document.getElementById("task-back").addEventListener("click", () => {
+        closeTaskDetail();
       });
     }
 
