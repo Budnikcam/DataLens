@@ -42,6 +42,7 @@
     }
     .device {
       width: min(390px, 100%);
+      max-height: min(860px, calc(100dvh - 48px));
       background: var(--bg);
       border-radius: 36px;
       box-shadow:
@@ -50,6 +51,8 @@
         0 28px 56px rgba(58,58,58,.12);
       overflow: hidden;
       position: relative;
+      display: flex;
+      flex-direction: column;
     }
     .device::before {
       content: "";
@@ -59,23 +62,29 @@
       margin: 10px auto 0;
       background: #1a1a1a;
       border-radius: 0 0 16px 16px;
+      flex-shrink: 0;
     }
     .phone {
       padding: 8px 16px calc(28px + var(--safe-b));
-      min-height: 780px;
+      min-height: 0;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
     @media (max-width: 440px) {
       body { background: var(--bg); }
       .stage { padding: 0; }
       .device {
         width: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
         min-height: 100dvh;
         border-radius: 0;
         box-shadow: none;
       }
       .device::before { display: none; }
       .phone {
-        min-height: 100dvh;
         padding-top: calc(12px + var(--safe-t));
       }
     }
@@ -316,7 +325,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
     .filters button {
       min-height: 44px;
@@ -327,39 +336,63 @@
       font: 500 12px Inter, sans-serif;
       color: var(--muted);
       cursor: pointer;
+      transition: color .2s, border-color .2s;
     }
     .filters button.active {
       color: var(--kpi);
       border-color: var(--kpi);
+      background: #fff;
     }
+
+    .task-card { padding: 4px 14px 8px; }
 
     .status-chart {
       display: grid;
       grid-template-columns: 120px 1fr;
-      gap: 16px;
+      gap: 20px;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
-    .ring { width: 120px; height: 120px; position: relative; }
-    .ring svg { transform: rotate(-90deg); }
+    .ring {
+      width: 120px;
+      height: 120px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .ring svg {
+      display: block;
+      width: 120px;
+      height: 120px;
+      transform: rotate(-90deg);
+    }
     .ring .mid {
       position: absolute;
       inset: 0;
-      display: grid;
-      place-items: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
       text-align: center;
+      pointer-events: none;
+      z-index: 1;
     }
     .ring .mid strong {
-      font-size: 28px;
+      display: block;
+      font-size: 26px;
       font-weight: 600;
       color: var(--kpi);
       line-height: 1;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
     }
     .ring .mid span {
+      display: block;
       font-size: 10px;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      line-height: 1.2;
     }
     .stat-legend { display: grid; gap: 12px; }
     .stat-legend div {
@@ -416,7 +449,7 @@
             <button data-filter="fail" type="button">Крит.</button>
             <button data-filter="all" type="button">Все</button>
           </div>
-          <div class="card" style="padding: 8px 14px">
+          <div class="card task-card">
             <div class="compact-list" id="task-list"></div>
           </div>
         </section>
@@ -447,8 +480,8 @@
       ],
       finance: [
         { name: "Договор · млн", plan: 3544, fact: 921 },
-        { name: "Оплачено · млн", plan: 5600, fact: 4368 },
-        { name: "Лимиты · млн", plan: 4230, fact: 1184 }
+        { name: "Лимиты · млн", plan: 4230, fact: 1184 },
+        { name: "Оплачено · млн", plan: 5600, fact: 4368 }
       ],
       labor: [
         { name: "Рабочие · чел.", plan: 1123, fact: 863 },
@@ -645,6 +678,10 @@
         if (filter === "fail") return x.status === "Не исполнено";
         return x.status === "В работе";
       });
+      if (!rows.length) {
+        list.innerHTML = `<div class="compact-row"><span></span><span class="t" style="color:var(--muted)">Нет задач</span><span></span></div>`;
+        return;
+      }
       list.innerHTML = rows.map(x => `
         <div class="compact-row">
           <span class="dot" style="background:${x.status === "Не исполнено" ? "var(--critical)" : "var(--kpi)"}"></span>
