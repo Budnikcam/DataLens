@@ -680,6 +680,23 @@
     @media (prefers-reduced-motion: reduce) {
       .panel.active, .fill { animation: none; }
     }
+
+    .edit-link {
+      display: block;
+      text-align: center;
+      margin: 28px 0 8px;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      text-decoration: none;
+      opacity: 0.65;
+    }
+    .edit-link:hover,
+    .edit-link:focus {
+      opacity: 1;
+      color: var(--kpi);
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -741,6 +758,8 @@
           </button>
           <div class="card detail-card" id="risk-detail-body"></div>
         </section>
+
+        <a class="edit-link" href="edit.html" id="edit-link">Редактор</a>
       </div>
     </div>
   </div>
