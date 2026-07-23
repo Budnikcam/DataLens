@@ -1,0 +1,2 @@
+object_name,customer,gen_contractor,gen_designer,contract_cost_mln,limit_cost_mln,start_date,contract_end,directive_end,readiness_fact_pct,readiness_plan_pct,workers_plan,workers_fact,delta_readiness_pp
+ЖК «Северный»,Подрядчик А,ООО «Успех»,ООО «Успех»,3544,4230,2019-06-05,2027-01-01,2027-06-30,54.71,55,500,300,-0.29
