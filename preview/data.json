@@ -3,13 +3,13 @@
     "name": "ЖК «Северный»",
     "meta": "Генподряд · ООО «Успех» · срок 30.06.2027",
     "readiness_fact": 54.71,
-    "readiness_plan": 55.0,
+    "readiness_plan": 55,
     "delta_pp": -0.29,
     "contract_mln": 3544,
     "paid_mln": 4368,
     "workers_fact": 300,
     "workers_plan": 500,
-    "supply_total_pct": 33.0,
+    "supply_total_pct": 33,
     "start_date": "2019-06-05",
     "directive_end": "2027-06-30"
   },
@@ -26,12 +26,12 @@
   "supply": [
     {
       "name": "Инж. оборуд.",
-      "pct": 50.0,
+      "pct": 50,
       "tone": "ok"
     },
     {
       "name": "Тех. оборуд.",
-      "pct": 25.0,
+      "pct": 25,
       "tone": "alert"
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "name": "Итого",
-      "pct": 33.0,
+      "pct": 33,
       "tone": "default"
     }
   ],
@@ -299,6 +299,6 @@
     }
   ],
   "sources": {
-    "sheetsApiUrl": ""
+    "sheetsApiUrl": "https://script.google.com/macros/s/AKfycbxyC2Yao1jnAkRf2xNPsQjuqUY-N47J1M6rLQBesTSqREauZlT7GxNGQExy55JqNJa0Vg/exec"
   }
 }
