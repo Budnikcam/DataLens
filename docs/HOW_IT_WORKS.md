@@ -26,21 +26,28 @@
 
 ```
 index.html          ← GitHub Pages (корень репозитория)
-edit.html           ← редактор: публикация на сайт через GitHub API
-data.json           ← серверная «опубликованная» версия для всех посетителей
+config.js           ← опциональный локальный sheetsApiUrl (в git обычно пустой)
+edit.html           ← редактор + поле связки с Google Sheets
+data.json           ← файл на сайте; sources.sheetsApiUrl — URL Apps Script
 versions/           ← архив снимков data-YYYY-MM-DD-HHmmss.json + manifest.json
 preview/
   mobile-dashboard.html  ← копия index.html
   data.json              ← копия data.json
 scripts/export_data_json.py
+scripts/google_apps_script/Code.gs
 data/*.csv
+docs/SHEETS_SYNC.md ← настройка связки Таблица → дашборд
 ```
 
 ### Порядок загрузки данных на дашборде
 
-1. Если в браузере есть `localStorage["datalens-data-current"]` — берём его (черновик в **этом** браузере).
-2. Иначе — `fetch("data.json")` с сервера.
-3. Если и это недоступно (например `file://`) — встроенный FALLBACK в HTML.
+1. Резолв URL таблицы: `?sheets=` → `config.js` → `data.json.sources.sheetsApiUrl`.
+2. Если URL задан — запрос к Apps Script (источник истины; localStorage пропускается). При ошибке — откат к файлу.
+3. Если URL не задан и есть `localStorage["datalens-data-current"]` — черновик в **этом** браузере.
+4. Иначе — `data.json` с сервера.
+5. Если и это недоступно — встроенный FALLBACK в HTML.
+
+Подробнее: [`SHEETS_SYNC.md`](SHEETS_SYNC.md).
 
 **Важно для разработчика:** после правок кода держите в синхроне:
 

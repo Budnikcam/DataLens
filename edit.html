@@ -498,6 +498,23 @@
     </section>
 
     <section class="card">
+      <h2>Связка с таблицей</h2>
+      <p class="section-lead">
+        После деплоя Apps Script вставьте URL веб-приложения (<code>/exec</code>).
+        При «Сохранить на сайт» URL попадает в <code>data.json → sources.sheetsApiUrl</code>.
+        Тогда публичный дашборд читает Google Таблицу (при обновлении страницы).
+        Редактор ниже остаётся запасным способом править <code>data.json</code>.
+      </p>
+      <div class="grid">
+        <div>
+          <label for="sheets-api-url">URL веб-приложения Google (Apps Script)</label>
+          <input id="sheets-api-url" type="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec" />
+        </div>
+      </div>
+      <p class="hint">Инструкция: <code>docs/SHEETS_SYNC.md</code>. Пока URL пустой — дашборд берёт <code>data.json</code>.</p>
+    </section>
+
+    <section class="card">
       <h2>Сохранение</h2>
       <p class="section-lead">Каждое сохранение на сайт создаёт новый файл в <code>versions/</code> и обновляет общий <code>data.json</code>. Старые версии остаются.</p>
       <div class="grid">
@@ -1035,7 +1052,12 @@
         ["block", false],
       ]);
 
-      return { project, smrDays, supply, finance, labor, risks, tasks };
+      const sheetsApiUrl = ($("sheets-api-url")?.value || "").trim();
+      const sources = Object.assign({}, DATA && DATA.sources ? DATA.sources : {}, {
+        sheetsApiUrl,
+      });
+
+      return { project, smrDays, supply, finance, labor, risks, tasks, sources };
     }
 
     function downloadJson(obj, filename) {
@@ -1350,7 +1372,16 @@
       }
     }
 
+    function renderSources() {
+      const url =
+        (DATA && DATA.sources && DATA.sources.sheetsApiUrl) ||
+        (window.DASHBOARD_CONFIG && window.DASHBOARD_CONFIG.sheetsApiUrl) ||
+        "";
+      if ($("sheets-api-url")) $("sheets-api-url").value = url;
+    }
+
     function renderAll() {
+      renderSources();
       renderProject();
       renderSmr();
       renderSupply();
@@ -1468,6 +1499,7 @@
             labor: [],
             risks: [],
             tasks: [],
+            sources: { sheetsApiUrl: "" },
           };
         }
       }

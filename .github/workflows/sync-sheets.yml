@@ -1,0 +1,63 @@
+name: Sync Google Sheets → data.json
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch dashboard JSON from Apps Script
+        env:
+          SHEETS_API_URL: ${{ secrets.SHEETS_API_URL }}
+        run: |
+          if [ -z "$SHEETS_API_URL" ]; then
+            echo "SHEETS_API_URL secret is empty — skip sync (live dashboard can still use Apps Script)."
+            echo "SKIP=1" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          curl -fsSL -L "$SHEETS_API_URL" -o /tmp/sheets-data.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          raw = Path("/tmp/sheets-data.json").read_text(encoding="utf-8")
+          data = json.loads(raw)
+          if not isinstance(data, dict) or "project" not in data or "tasks" not in data:
+              raise SystemExit("Invalid payload: expected dashboard JSON with project/tasks")
+          # Keep published sheetsApiUrl from repo data.json so public site config is preserved
+          root = Path("data.json")
+          if root.exists():
+              try:
+                  prev = json.loads(root.read_text(encoding="utf-8"))
+                  url = (prev.get("sources") or {}).get("sheetsApiUrl") or ""
+                  if url:
+                      data.setdefault("sources", {})["sheetsApiUrl"] = url
+              except Exception:
+                  pass
+          text = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+          Path("data.json").write_text(text, encoding="utf-8")
+          Path("preview/data.json").parent.mkdir(parents=True, exist_ok=True)
+          Path("preview/data.json").write_text(text, encoding="utf-8")
+          print("Wrote data.json and preview/data.json")
+          PY
+
+      - name: Commit if changed
+        if: env.SKIP != '1'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json preview/data.json
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "data: sync from Google Sheets"
+            git push
+          fi

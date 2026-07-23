@@ -126,8 +126,17 @@
     .meta {
       font-size: 11px;
       color: var(--muted);
-      margin: 0 0 20px;
+      margin: 0 0 4px;
     }
+    .data-source {
+      font-size: 10px;
+      color: var(--muted);
+      margin: 0 0 18px;
+      opacity: 0.85;
+      letter-spacing: 0.01em;
+    }
+    .data-source[data-kind="sheets"] { color: var(--ok); }
+    .data-source[hidden] { display: none; }
 
     .scores {
       display: grid;
@@ -712,6 +721,7 @@
         <section id="project" class="panel active" role="tabpanel">
           <h1 class="object" id="proj-name">—</h1>
           <p class="meta" id="proj-meta">—</p>
+          <p class="data-source" id="data-source" hidden></p>
           <div class="scores" id="scores"></div>
           <div class="card block" id="smr-block"></div>
           <div class="card block" id="gauge-block"></div>
@@ -764,6 +774,7 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script>
     /* Fallback if fetch('data.json') fails (file:// or offline). Update via data.json + push. */
     const FALLBACK = {
@@ -1344,25 +1355,122 @@
       renderRisks();
     }
 
+    function setDataSourceBadge(kind) {
+      const el = document.getElementById("data-source");
+      if (!el) return;
+      if (kind === "sheets") {
+        el.hidden = false;
+        el.dataset.kind = "sheets";
+        el.textContent = "Данные из Google Таблицы";
+      } else if (kind === "file" || kind === "local") {
+        el.hidden = false;
+        el.dataset.kind = "file";
+        el.textContent = "Данные из файла";
+      } else {
+        el.hidden = true;
+        el.textContent = "";
+        delete el.dataset.kind;
+      }
+    }
+
+    function looksLikeDashboard(obj) {
+      return obj && typeof obj === "object" && obj.project && Array.isArray(obj.tasks);
+    }
+
+    function fetchSheetsJson(url) {
+      return fetch(url, { cache: "no-store", redirect: "follow" })
+        .then(async (res) => {
+          if (!res.ok) throw new Error(String(res.status));
+          const data = await res.json();
+          if (!looksLikeDashboard(data)) throw new Error("bad shape");
+          return data;
+        })
+        .catch(() => fetchSheetsJsonp(url));
+    }
+
+    function fetchSheetsJsonp(url) {
+      return new Promise((resolve, reject) => {
+        const cb = "datalens_cb_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
+        const script = document.createElement("script");
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("JSONP timeout"));
+        }, 15000);
+        function cleanup() {
+          clearTimeout(timer);
+          try { delete window[cb]; } catch (_) { window[cb] = undefined; }
+          script.remove();
+        }
+        window[cb] = (data) => {
+          cleanup();
+          if (!looksLikeDashboard(data)) reject(new Error("bad shape"));
+          else resolve(data);
+        };
+        script.onerror = () => {
+          cleanup();
+          reject(new Error("JSONP error"));
+        };
+        const sep = url.indexOf("?") >= 0 ? "&" : "?";
+        script.src = url + sep + "callback=" + encodeURIComponent(cb);
+        document.head.appendChild(script);
+      });
+    }
+
     async function boot() {
       bindUI();
-      // Prefer locally saved edits (same browser), else server data.json
-      try {
-        const raw = localStorage.getItem("datalens-data-current");
-        if (raw) {
-          DATA = JSON.parse(raw);
-          paint();
-          return;
-        }
-      } catch (_) { /* fall through */ }
+
+      const params = new URLSearchParams(location.search);
+      let sheetsUrl = (
+        params.get("sheets") ||
+        (window.DASHBOARD_CONFIG && window.DASHBOARD_CONFIG.sheetsApiUrl) ||
+        ""
+      ).trim();
+
+      let fileData = null;
       try {
         const res = await fetch("data.json", { cache: "no-store" });
-        if (!res.ok) throw new Error(String(res.status));
-        DATA = await res.json();
-      } catch (_) {
-        DATA = FALLBACK;
+        if (res.ok) fileData = await res.json();
+      } catch (_) { /* fall through */ }
+
+      if (!sheetsUrl && fileData && fileData.sources && fileData.sources.sheetsApiUrl) {
+        sheetsUrl = String(fileData.sources.sheetsApiUrl || "").trim();
       }
+
+      // When Sheets URL is configured: Sheets is source of truth (skip localStorage).
+      if (sheetsUrl) {
+        try {
+          DATA = await fetchSheetsJson(sheetsUrl);
+          // Keep published URL for editor round-trips if payload omits it
+          DATA.sources = DATA.sources || {};
+          if (!DATA.sources.sheetsApiUrl) DATA.sources.sheetsApiUrl = sheetsUrl;
+          paint();
+          setDataSourceBadge("sheets");
+          return;
+        } catch (_) {
+          /* fall through to file / fallback */
+        }
+      } else {
+        try {
+          const raw = localStorage.getItem("datalens-data-current");
+          if (raw) {
+            DATA = JSON.parse(raw);
+            paint();
+            setDataSourceBadge("local");
+            return;
+          }
+        } catch (_) { /* fall through */ }
+      }
+
+      if (fileData && looksLikeDashboard(fileData)) {
+        DATA = fileData;
+        paint();
+        setDataSourceBadge("file");
+        return;
+      }
+
+      DATA = FALLBACK;
       paint();
+      setDataSourceBadge("file");
     }
 
     boot();
