@@ -1,0 +1,121 @@
+# Как устроен дашборд (GitHub Pages)
+
+Публичная страница: **https://budnikcam.github.io/DataLens/**
+
+Это единственный сдаваемый интерфейс для Маргариты (не Yandex DataLens и не Looker).  
+Стиль: [`STYLE.md`](STYLE.md) — палитра «природный минимализм», mobile-first.
+
+---
+
+## Что открывается на странице
+
+Один HTML-файл (`index.html`) + данные (`data.json`).
+
+| Вкладка | Содержание |
+|---|---|
+| **Проект** | Scorecards, **СМР (дни)** (до «Готовности»), gauge готовности, комплектация, финансы, труд, превью рисков |
+| **Задачи** | Donut статусов (кликабельный), фильтры, список **по блокам**, карточка задачи |
+| **Риски** | Фильтры, список, карточка риска |
+
+Мета под названием объекта:  
+`Генподряд · ООО «Успех» · срок до 30.06.2027`
+
+---
+
+## Как связаны файлы
+
+```
+index.html          ← GitHub Pages (корень репозитория)
+data.json           ← цифры, задачи, риски (fetch при загрузке)
+preview/
+  mobile-dashboard.html  ← копия index.html (эталон / локальный просмотр)
+  data.json              ← копия data.json
+scripts/export_data_json.py  ← сборка JSON из CSV в data/
+data/*.csv               ← исходные таблицы (опционально)
+```
+
+Страница читает `data.json` через `fetch("data.json")`.  
+Если fetch недоступен (например, открыли файл локально как `file://`), срабатывает встроенный FALLBACK в `index.html` — те же цифры.
+
+**Важно:** после правок всегда держите в синхроне:
+
+1. `index.html` ↔ `preview/mobile-dashboard.html`
+2. `data.json` ↔ `preview/data.json`
+
+---
+
+## Как править цифры, задачи и риски
+
+### Быстрый путь — править `data.json`
+
+Откройте `data.json` в редакторе. Основные блоки:
+
+| Ключ | Что менять |
+|---|---|
+| `project` | Название, meta, готовность, договор, рабочие… |
+| `smrDays` | `elapsed`, `total`, `remaining`, `readinessPct`, `alert` |
+| `supply` / `finance` / `labor` | Графики на вкладке «Проект» |
+| `tasks[]` | `t`, `description`, `responsible`, `explanation`, `status`, `block`, `m` |
+| `risks[]` | `t`, `problem`, `risk_level`, `solution`, `owner`, `deadline`, `m`, `status` |
+
+**Пояснение** (`explanation`): заполняйте для статуса «Не исполнено»; для «В работе» оставляйте пустую строку `""`.
+
+После сохранения скопируйте файл в `preview/data.json` (или запустите скрипт экспорта — он пишет оба).
+
+### Через CSV + скрипт
+
+1. Правьте CSV в папке `data/` (`01_project_card.csv`, `07_risks.csv`, `08_tasks.csv`…).
+2. Запустите:
+
+```bash
+python scripts/export_data_json.py
+```
+
+Скрипт пересчитает `smrDays` по датам старта/окончания и готовности, соберёт задачи с блоками и риски с полными полями, обновит оба `data.json`.
+
+---
+
+## Как опубликовать изменения (GitHub Pages)
+
+1. Закоммитьте изменения в ветку `main`.
+2. Запушьте в remote:
+
+```bash
+git add -A
+git commit -m "Update dashboard data / UI"
+git push origin main
+```
+
+3. Через 1–3 минуты обновите страницу:  
+   https://budnikcam.github.io/DataLens/  
+   (при кэше — жёсткое обновление в Safari / Chrome).
+
+Репозиторий: https://github.com/Budnikcam/DataLens  
+Pages обслуживает корень `main` (`index.html`).
+
+---
+
+## Как пригласить Маргариту в GitHub
+
+1. Откройте репозиторий → **Settings** → **Collaborators** (или **Manage access**).
+2. **Add people** → введите её GitHub-логин или email.
+3. Роль: **Write** (чтобы могла править `data.json`) или **Read** (только просмотр кода).
+4. Она примет приглашение по письму / уведомлению GitHub.
+5. Ссылку на Pages можно открывать без аккаунта GitHub — это публичная страница.
+
+Telegram для связи: **@do_rita**.
+
+---
+
+## Локальная проверка
+
+- Откройте `preview/mobile-dashboard.html` в браузере (рядом должен лежать `preview/data.json`),  
+  **или** поднимите простой HTTP-сервер из корня репо:
+
+```bash
+python -m http.server 8080
+```
+
+Затем: http://localhost:8080/
+
+Проверяйте ширину ~390 px (iPhone) и вкладки Проект / Задачи / Риски.

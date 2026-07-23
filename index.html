@@ -91,7 +91,7 @@
 
     .nav {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
       margin-bottom: 24px;
     }
@@ -101,7 +101,7 @@
       background: var(--card);
       border-radius: 12px;
       box-shadow: var(--shadow);
-      font: 500 14px Inter, sans-serif;
+      font: 500 13px Inter, sans-serif;
       color: var(--muted);
       cursor: pointer;
       transition: color .2s, border-color .2s, background .2s;
@@ -215,6 +215,61 @@
       vertical-align: middle;
     }
 
+    /* SMR days */
+    .smr-card.alert {
+      border-color: rgba(184, 134, 78, 0.55);
+      box-shadow: 0 4px 16px rgba(184, 134, 78, 0.1), var(--shadow);
+    }
+    .smr-kpis {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .smr-kpi {
+      text-align: center;
+      padding: 10px 6px;
+      border-radius: 10px;
+      background: rgba(247, 245, 240, 0.9);
+      border: 1px solid var(--line);
+    }
+    .smr-kpi .v {
+      display: block;
+      font-size: 18px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .smr-kpi .v.warn { color: var(--attention); }
+    .smr-kpi .v.crit { color: var(--critical); }
+    .smr-kpi .l {
+      display: block;
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .smr-compare { display: grid; gap: 14px; }
+    .smr-note {
+      margin: 14px 0 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(184, 134, 78, 0.1);
+      border: 1px solid rgba(184, 134, 78, 0.28);
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+    .smr-note.crit {
+      background: rgba(158, 59, 51, 0.07);
+      border-color: rgba(158, 59, 51, 0.22);
+    }
+    .smr-note strong { color: var(--attention); font-weight: 600; }
+    .smr-note.crit strong { color: var(--critical); }
+
     .bars { display: grid; gap: 16px; }
     .bar-row .top {
       display: flex;
@@ -248,6 +303,9 @@
     }
     .fill.ok {
       background: linear-gradient(90deg, #2C5F4A, #6B8F7A);
+    }
+    .fill.attention {
+      background: linear-gradient(90deg, #B8864E, #D4A574);
     }
 
     .dual { display: grid; gap: 16px; }
@@ -327,6 +385,9 @@
       gap: 8px;
       margin-bottom: 20px;
     }
+    .filters.risks-filters {
+      grid-template-columns: 1fr 1fr;
+    }
     .filters button {
       min-height: 44px;
       border: 1px solid var(--line);
@@ -346,7 +407,20 @@
 
     .task-card { padding: 4px 14px 8px; }
 
-    .compact-row.task-tap {
+    .group-head {
+      margin: 16px 0 4px;
+      padding: 8px 0 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+    }
+    .group-head:first-child { margin-top: 4px; }
+
+    .compact-row.task-tap,
+    .compact-row.risk-tap {
       width: 100%;
       border: 0;
       background: transparent;
@@ -362,11 +436,14 @@
       transition: background .15s ease;
     }
     .compact-row.task-tap:hover,
-    .compact-row.task-tap:focus-visible {
+    .compact-row.task-tap:focus-visible,
+    .compact-row.risk-tap:hover,
+    .compact-row.risk-tap:focus-visible {
       background: rgba(44, 95, 74, 0.06);
       outline: none;
     }
-    .compact-row.task-tap:active {
+    .compact-row.task-tap:active,
+    .compact-row.risk-tap:active {
       background: rgba(44, 95, 74, 0.1);
     }
 
@@ -457,6 +534,17 @@
       color: var(--muted);
       font-weight: 400;
     }
+    .detail-explain {
+      margin-top: 4px;
+      font-size: 14px;
+      line-height: 1.5;
+      font-weight: 400;
+      color: var(--ink);
+    }
+    .detail-explain.empty {
+      color: var(--muted);
+      font-style: normal;
+    }
 
     .status-chart {
       display: grid;
@@ -477,6 +565,12 @@
       height: 120px;
       transform: rotate(-90deg);
     }
+    .ring .seg {
+      cursor: pointer;
+      transition: stroke-width .15s ease, opacity .15s ease;
+    }
+    .ring .seg:hover { opacity: 0.9; }
+    .ring .seg.active-seg { stroke-width: 5.2; }
     .ring .mid {
       position: absolute;
       inset: 0;
@@ -486,8 +580,22 @@
       justify-content: center;
       gap: 2px;
       text-align: center;
-      pointer-events: none;
       z-index: 1;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      border-radius: 50%;
+      width: 64px;
+      height: 64px;
+      margin: auto;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ring .mid:focus-visible {
+      outline: 2px solid var(--kpi);
+      outline-offset: 2px;
     }
     .ring .mid strong {
       display: block;
@@ -506,12 +614,33 @@
       letter-spacing: 0.05em;
       line-height: 1.2;
     }
-    .stat-legend { display: grid; gap: 12px; }
-    .stat-legend div {
+    .stat-legend { display: grid; gap: 8px; }
+    .stat-legend button {
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      min-height: 40px;
+      padding: 6px 8px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: transparent;
+      font: inherit;
       font-size: 12px;
       color: var(--muted);
+      cursor: pointer;
+      text-align: left;
+      transition: background .15s, border-color .15s;
+    }
+    .stat-legend button:hover,
+    .stat-legend button:focus-visible {
+      background: rgba(44, 95, 74, 0.06);
+      outline: none;
+    }
+    .stat-legend button.active {
+      border-color: var(--line);
+      background: rgba(44, 95, 74, 0.06);
+      color: var(--ink);
     }
     .stat-legend b { color: var(--ink); font-variant-numeric: tabular-nums; }
     .swatch {
@@ -519,6 +648,25 @@
       width: 8px; height: 8px;
       border-radius: 2px;
       margin-right: 8px;
+    }
+
+    .hint-risks {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .linkish {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--bg);
+      color: var(--kpi);
+      font: 500 13px Inter, sans-serif;
+      cursor: pointer;
     }
 
     @keyframes enter {
@@ -541,17 +689,19 @@
         <nav class="nav" role="tablist" aria-label="Разделы">
           <button class="active" data-tab="project" type="button" role="tab" aria-selected="true">Проект</button>
           <button data-tab="tasks" type="button" role="tab" aria-selected="false">Задачи</button>
+          <button data-tab="risks" type="button" role="tab" aria-selected="false">Риски</button>
         </nav>
 
         <section id="project" class="panel active" role="tabpanel">
           <h1 class="object" id="proj-name">—</h1>
           <p class="meta" id="proj-meta">—</p>
           <div class="scores" id="scores"></div>
+          <div class="card block" id="smr-block"></div>
           <div class="card block" id="gauge-block"></div>
           <div class="card block" id="supply-block"></div>
           <div class="card block" id="finance-block"></div>
           <div class="card block" id="labor-block"></div>
-          <div class="card block" id="risks-block" style="margin-bottom:0"></div>
+          <div class="card block" id="risks-preview" style="margin-bottom:0"></div>
         </section>
 
         <section id="tasks" class="panel" hidden role="tabpanel">
@@ -572,6 +722,25 @@
           </button>
           <div class="card detail-card" id="task-detail-body"></div>
         </section>
+
+        <section id="risks" class="panel" hidden role="tabpanel">
+          <div class="filters risks-filters" id="risk-filters" role="group" aria-label="Фильтр рисков">
+            <button class="active" data-risk-filter="open" type="button">В работе</button>
+            <button data-risk-filter="done" type="button">Выполнено</button>
+            <button data-risk-filter="critical" type="button">Критические</button>
+            <button data-risk-filter="all" type="button">Все</button>
+          </div>
+          <div class="card task-card">
+            <div class="compact-list" id="risk-list"></div>
+          </div>
+        </section>
+
+        <section id="risk-detail" class="panel" hidden role="tabpanel" aria-label="Карточка риска">
+          <button type="button" class="back-btn" id="risk-back" aria-label="Назад к списку рисков">
+            <span class="chev" aria-hidden="true">‹</span> Назад
+          </button>
+          <div class="card detail-card" id="risk-detail-body"></div>
+        </section>
       </div>
     </div>
   </div>
@@ -581,7 +750,7 @@
     const FALLBACK = {
       project: {
         name: "ЖК «Северный»",
-        meta: "Генподряд · ООО «Успех» · до 30.06.2027",
+        meta: "Генподряд · ООО «Успех» · срок до 30.06.2027",
         readiness_fact: 54.71,
         readiness_plan: 55,
         delta_pp: -0.29,
@@ -589,7 +758,19 @@
         paid_mln: 4368,
         workers_fact: 300,
         workers_plan: 500,
-        supply_total_pct: 33
+        supply_total_pct: 33,
+        start_date: "2019-06-05",
+        directive_end: "2027-06-30"
+      },
+      smrDays: {
+        elapsed: 2605,
+        total: 2947,
+        remaining: 342,
+        readinessPct: 54.71,
+        timePct: 88.39,
+        alert: true,
+        start: "2019-06-05",
+        end: "2027-06-30"
       },
       supply: [
         { name: "Инж. оборуд.", pct: 50, tone: "ok" },
@@ -607,30 +788,36 @@
         { name: "ИТР · чел.", plan: 93, fact: 93 }
       ],
       risks: [
-        { t: "Финансирование 489 / 1082", m: "24.01" },
-        { t: "Неучтенный объём · ПСД", m: "15.01" }
+        { t: "Финансирование · доведено 489", problem: "Недостаточное финансирование: доведено 489 млн при потребности 1082 млн на январь", impact: "Существенное", risk_level: "Критический", solution: "Финансирование 489 млн доведено (факт на 13.01.2026)", owner: "Заказчик А", deadline: "2026-01-13", m: "13.01", status: "Выполнено" },
+        { t: "Финансирование · доп. соглашение", problem: "Недостаточное финансирование: доведено 489 млн при потребности 1082 млн на январь", impact: "Существенное", risk_level: "Критический", solution: "Заказчику А обеспечить подписание доп. соглашения на увеличение стоимости", owner: "Заказчик А", deadline: "2026-01-20", m: "20.01", status: "В работе" },
+        { t: "Финансирование · остаток 586 млн", problem: "Недостаточное финансирование: доведено 489 млн при потребности 1082 млн на январь", impact: "Существенное", risk_level: "Критический", solution: "Довести средства в объеме остатка заявки — 586 млн руб.", owner: "Заказчик А", deadline: "2026-01-24", m: "24.01", status: "В работе" },
+        { t: "Неучтенный объём · ПСД", problem: "Неучтенный объем работ не прошедший инспекцию; требуется повторное заключение", impact: "Существенное", risk_level: "Критический", solution: "ООО «Успех» — предоставить ПСД", owner: "ООО «Успех»", deadline: "2026-01-15", m: "15.01", status: "В работе" },
+        { t: "Неучтенный объём · согласование", problem: "Неучтенный объем работ не прошедший инспекцию; требуется повторное заключение", impact: "Существенное", risk_level: "Критический", solution: "Заказчику А — рассмотреть ПСД и принять решение о порядке согласования", owner: "Заказчик А", deadline: "2026-02-15", m: "15.02", status: "В работе" },
+        { t: "Неучтенный объём · лимиты", problem: "Неучтенный объем работ не прошедший инспекцию; требуется повторное заключение", impact: "Существенное", risk_level: "Критический", solution: "Внести изменения в лимиты финансирования", owner: "Заказчик А / ООО «Успех»", deadline: "2026-02-28", m: "28.02", status: "В работе" }
       ],
       tasks: [
-        { t: "Рентабельность АО «Успех»", description: "Разработать критерии АО «Успех» по рентабельности и прибыли", responsible: "Иванова А.А.", m: "22.07", deadline: "2026-07-22", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
-        { t: "Стратегия ЖК «Северный»", description: "Стратегия по реализации проектов ЖК «Северный»", responsible: "Куприянов И.Г. / Овлякин Н.П. / Директора", m: "10.07", deadline: "2026-07-10", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
-        { t: "НДС +2% · разногласия", description: "Внести в таблицу разногласий информацию по увеличению НДС на 2%", responsible: "Иванова А.А.", m: "26.07", deadline: "2026-07-26", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
-        { t: "Доп. соглашения (НДС)", description: "Информация по доп. соглашениям с подрядчиками из-за НДС", responsible: "Иванова А.А.", m: "24.07", deadline: "2026-07-24", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
-        { t: "Сокращение расходов", description: "Организовать работу по сокращению расходов", responsible: "Криворуков", m: "еженед.", deadline: "", deadline_type: "еженедельно", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
-        { t: "ЖК «Солнце» · благоустр.", description: "Информация по благоустройству ЖК «Солнце»", responsible: "Баранов В.Б.", m: "28.07", deadline: "2026-07-28", deadline_type: "дата", status: "В работе", block: "ЗАКУПКИ/КАЦ" },
-        { t: "Контракты 1С", description: "Статус подписания контрактов в 1С по объектам ИС", responsible: "Баранов В.Б.", m: "пт", deadline: "", deadline_type: "еженедельно (пт)", status: "В работе", block: "ЗАКУПКИ/КАЦ" },
-        { t: "Материалы на балансе", description: "Доклад по реализации материалов на балансе", responsible: "Баранов В.Б.", m: "еженед.", deadline: "", deadline_type: "еженедельно", status: "В работе", block: "ЗАКУПКИ/КАЦ" },
-        { t: "Договоры с субподрядчиками", description: "Статус по договорам с субподрядчиками", responsible: "Абрамов П.Р.", m: "03.07", deadline: "2026-07-03", deadline_type: "дата", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
-        { t: "Папки с ответами · ВПР", description: "Папки с ответами (перенос сроков остановка ВПР)", responsible: "Абрамов П.Р.", m: "пост.", deadline: "", deadline_type: "постоянно", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
-        { t: "Претензионная работа", description: "Доклад по претензионной работе юр. отдела", responsible: "Абрамов П.Р.", m: "пн", deadline: "", deadline_type: "еженедельно (пн)", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
-        { t: "Приказ · ответственность", description: "Приказ об усилении ответственности директоров за достоверность информации", responsible: "Трушкина М.В.", m: "03.07", deadline: "2026-07-03", deadline_type: "дата", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
-        { t: "АО «Прут» · письмо", description: "Письмо в АО «Прут» по оценке совместной работы", responsible: "Абрамов П.Р.", m: "20.03", deadline: "2026-03-20", deadline_type: "дата", status: "Не исполнено", block: "ПРАВОВЫЕ ВОПРОСЫ" },
-        { t: "ЖК «Берег» · справка", description: "Справка по проекту ЖК «Берег»", responsible: "Абрамов П.Р.", m: "03.07", deadline: "2026-07-03", deadline_type: "дата", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ / План на неделю" }
+        { t: "Рентабельность АО «Успех»", description: "Разработать критерии АО «Успех» по рентабельности и прибыли", responsible: "Иванова А.А.", explanation: "", m: "22.07", deadline: "2026-07-22", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "Стратегия ЖК «Северный»", description: "Стратегия по реализации проектов ЖК «Северный»", responsible: "Куприянов И.Г. / Овлякин Н.П. / Директора", explanation: "", m: "10.07", deadline: "2026-07-10", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "НДС +2% · разногласия", description: "Внести в таблицу разногласий информацию по увеличению НДС на 2%", responsible: "Иванова А.А.", explanation: "", m: "26.07", deadline: "2026-07-26", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "Доп. соглашения (НДС)", description: "Информация по доп. соглашениям с подрядчиками из-за НДС", responsible: "Иванова А.А.", explanation: "", m: "24.07", deadline: "2026-07-24", deadline_type: "дата", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "Сокращение расходов", description: "Организовать работу по сокращению расходов", responsible: "Криворуков", explanation: "", m: "еженед.", deadline: "", deadline_type: "еженедельно", status: "В работе", block: "ФИНАНСЫ/КАЗНАЧЕЙСТВО" },
+        { t: "ЖК «Солнце» · благоустр.", description: "Информация по благоустройству ЖК «Солнце»", responsible: "Баранов В.Б.", explanation: "", m: "28.07", deadline: "2026-07-28", deadline_type: "дата", status: "В работе", block: "ЗАКУПКИ/КАЦ" },
+        { t: "Контракты 1С", description: "Статус подписания контрактов в 1С по объектам ИС", responsible: "Баранов В.Б.", explanation: "", m: "пт", deadline: "", deadline_type: "еженедельно (пт)", status: "В работе", block: "ЗАКУПКИ/КАЦ" },
+        { t: "Материалы на балансе", description: "Доклад по реализации материалов на балансе", responsible: "Баранов В.Б.", explanation: "", m: "еженед.", deadline: "", deadline_type: "еженедельно", status: "В работе", block: "ЗАКУПКИ/КАЦ" },
+        { t: "Договоры с субподрядчиками", description: "Статус по договорам с субподрядчиками", responsible: "Абрамов П.Р.", explanation: "", m: "03.07", deadline: "2026-07-03", deadline_type: "дата", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "Папки с ответами · ВПР", description: "Папки с ответами (перенос сроков остановка ВПР)", responsible: "Абрамов П.Р.", explanation: "", m: "пост.", deadline: "", deadline_type: "постоянно", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "Претензионная работа", description: "Доклад по претензионной работе юр. отдела", responsible: "Абрамов П.Р.", explanation: "", m: "пн", deadline: "", deadline_type: "еженедельно (пн)", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "Приказ · ответственность", description: "Приказ об усилении ответственности директоров за достоверность информации", responsible: "Трушкина М.В.", explanation: "", m: "03.07", deadline: "2026-07-03", deadline_type: "дата", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "АО «Прут» · письмо", description: "Письмо в АО «Прут» по оценке совместной работы", responsible: "Абрамов П.Р.", explanation: "Ответ АО «Прут» не получен в согласованный срок; повторный запрос направлен, оценка совместной работы задерживается на стороне контрагента.", m: "20.03", deadline: "2026-03-20", deadline_type: "дата", status: "Не исполнено", block: "ПРАВОВЫЕ ВОПРОСЫ" },
+        { t: "ЖК «Берег» · справка", description: "Справка по проекту ЖК «Берег»", responsible: "Абрамов П.Р.", explanation: "", m: "03.07", deadline: "2026-07-03", deadline_type: "дата", status: "В работе", block: "ПРАВОВЫЕ ВОПРОСЫ / План на неделю" }
       ]
     };
 
     let DATA = FALLBACK;
     let filter = "open";
+    let riskFilter = "open";
     let detailOpen = false;
+    let riskDetailOpen = false;
 
     const fmtPct = (n, digits = 2) =>
       Number(n).toLocaleString("ru-RU", { minimumFractionDigits: digits, maximumFractionDigits: digits }) + "%";
@@ -648,6 +835,18 @@
       return "—";
     }
 
+    function shortDate(iso) {
+      if (!iso || iso.indexOf("-") < 0) return iso || "—";
+      const p = iso.split("-");
+      return p.length >= 3 ? `${p[2]}.${p[1]}` : iso;
+    }
+
+    function riskDot(r) {
+      if (r.status === "Выполнено") return "var(--ok)";
+      if (r.risk_level === "Критический" || r.status === "Не исполнено") return "var(--critical)";
+      return "var(--attention)";
+    }
+
     function showPanel(id) {
       document.querySelectorAll(".panel").forEach(p => {
         p.classList.remove("active");
@@ -658,6 +857,31 @@
       panel.hidden = false;
     }
 
+    function setNav(tab) {
+      document.querySelectorAll(".nav button").forEach(b => {
+        const on = b.dataset.tab === tab;
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
+      });
+    }
+
+    function setTaskFilter(next) {
+      filter = next;
+      document.querySelectorAll("#filters button").forEach(c => {
+        c.classList.toggle("active", c.dataset.filter === filter);
+      });
+      renderDonut();
+      renderTasks();
+    }
+
+    function setRiskFilter(next) {
+      riskFilter = next;
+      document.querySelectorAll("#risk-filters button").forEach(c => {
+        c.classList.toggle("active", c.dataset.riskFilter === riskFilter);
+      });
+      renderRisks();
+    }
+
     function openTaskDetail(index) {
       const task = (DATA.tasks || [])[index];
       if (!task) return;
@@ -666,6 +890,10 @@
       const status = task.status || "—";
       const crit = status === "Не исполнено";
       const block = (task.block || "").trim();
+      const explanation = (task.explanation || "").trim();
+      const explainHtml = crit
+        ? `<p class="detail-explain">${esc(explanation || "—")}</p>`
+        : `<p class="detail-explain empty">—</p>`;
       document.getElementById("task-detail-body").innerHTML = `
         <h2 class="detail-title">${esc(task.t)}</h2>
         <p class="detail-desc">${esc(desc)}</p>
@@ -688,32 +916,116 @@
             </dd>
           </div>
           ${block ? `<div class="row"><dt>Блок</dt><dd class="detail-block">${esc(block)}</dd></div>` : ""}
+          <div class="row">
+            <dt>Пояснение</dt>
+            <dd>${explainHtml}</dd>
+          </div>
         </dl>`;
       detailOpen = true;
-      document.querySelectorAll(".nav button").forEach(b => {
-        const on = b.dataset.tab === "tasks";
-        b.classList.toggle("active", on);
-        b.setAttribute("aria-selected", on ? "true" : "false");
-      });
+      riskDetailOpen = false;
+      setNav("tasks");
       showPanel("task-detail");
-      document.getElementById("phone-scroll")?.scrollTo?.(0, 0);
       document.querySelector(".phone")?.scrollTo?.(0, 0);
     }
 
     function closeTaskDetail() {
       detailOpen = false;
-      document.querySelectorAll(".nav button").forEach(b => {
-        const on = b.dataset.tab === "tasks";
-        b.classList.toggle("active", on);
-        b.setAttribute("aria-selected", on ? "true" : "false");
-      });
+      setNav("tasks");
       showPanel("tasks");
+    }
+
+    function openRiskDetail(index) {
+      const risk = (DATA.risks || [])[index];
+      if (!risk) return;
+      const status = risk.status || "—";
+      const level = risk.risk_level || "—";
+      document.getElementById("risk-detail-body").innerHTML = `
+        <h2 class="detail-title">${esc(risk.t)}</h2>
+        <p class="detail-desc">${esc(risk.problem || "—")}</p>
+        <dl class="detail-meta">
+          <div class="row">
+            <dt>Уровень риска</dt>
+            <dd>
+              <span class="detail-status">
+                <span class="dot" style="background:${riskDot(risk)}"></span>
+                ${esc(level)}
+              </span>
+            </dd>
+          </div>
+          <div class="row">
+            <dt>Решение</dt>
+            <dd>${esc(risk.solution || "—")}</dd>
+          </div>
+          <div class="row">
+            <dt>Ответственный</dt>
+            <dd>${esc(risk.owner || "—")}</dd>
+          </div>
+          <div class="row">
+            <dt>Срок</dt>
+            <dd>${esc(risk.m || shortDate(risk.deadline))}</dd>
+          </div>
+          <div class="row">
+            <dt>Статус</dt>
+            <dd>${esc(status)}</dd>
+          </div>
+        </dl>`;
+      riskDetailOpen = true;
+      detailOpen = false;
+      setNav("risks");
+      showPanel("risk-detail");
+      document.querySelector(".phone")?.scrollTo?.(0, 0);
+    }
+
+    function closeRiskDetail() {
+      riskDetailOpen = false;
+      setNav("risks");
+      showPanel("risks");
     }
 
     function gaugePoint(p) {
       const r = 76, cx = 100, cy = 100;
       const a = Math.PI * (1 - Math.min(1, Math.max(0, p)));
       return { x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) };
+    }
+
+    function renderSmr() {
+      const s = DATA.smrDays || {};
+      const elapsed = Number(s.elapsed) || 0;
+      const total = Number(s.total) || 1;
+      const remaining = Number(s.remaining) || 0;
+      const readiness = Number(s.readinessPct != null ? s.readinessPct : DATA.project.readiness_fact) || 0;
+      const timePct = Number(s.timePct != null ? s.timePct : (elapsed / total) * 100);
+      const alert = s.alert !== false && timePct - readiness > 10;
+      const gap = Math.max(0, timePct - readiness);
+      const el = document.getElementById("smr-block");
+      el.className = "card block" + (alert ? " smr-card alert" : "");
+      el.innerHTML = `
+        <h2 class="block-title">СМР (дни)</h2>
+        <div class="smr-kpis">
+          <div class="smr-kpi">
+            <span class="v">${fmtNum(elapsed)}</span>
+            <span class="l">прошло</span>
+          </div>
+          <div class="smr-kpi">
+            <span class="v ${remaining < 400 ? "warn" : ""}">${fmtNum(remaining)}</span>
+            <span class="l">осталось</span>
+          </div>
+          <div class="smr-kpi">
+            <span class="v">${fmtNum(total)}</span>
+            <span class="l">всего</span>
+          </div>
+        </div>
+        <div class="smr-compare">
+          <div class="bar-row">
+            <div class="top"><span>Срок пройден</span><strong>${fmtPctShort(timePct)}</strong></div>
+            <div class="track"><div class="fill attention" style="width:${Math.min(100, timePct)}%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="top"><span>Готовность</span><strong>${fmtPctShort(readiness)}</strong></div>
+            <div class="track"><div class="fill${alert ? " alert" : ""}" style="width:${Math.min(100, readiness)}%"></div></div>
+          </div>
+        </div>
+        ${alert ? `<p class="smr-note${gap > 25 ? " crit" : ""}"><strong>Внимание:</strong> осталось ${fmtNum(remaining)} дн., готовность ${fmtPctShort(readiness)} при ${fmtPctShort(timePct)} срока</p>` : ""}`;
     }
 
     function renderProject() {
@@ -745,6 +1057,8 @@
           <div class="lbl">Комплектация</div>
           <div class="num sm">${fmtPctShort(p.supply_total_pct)}</div>
         </div>`;
+
+      renderSmr();
 
       const factP = p.readiness_fact / 100;
       const planP = p.readiness_plan / 100;
@@ -812,14 +1126,16 @@
           </div>`;
         }).join("")}</div>`;
 
-      document.getElementById("risks-block").innerHTML = `
+      const openRisks = (DATA.risks || []).filter(r => r.status === "В работе").slice(0, 3);
+      document.getElementById("risks-preview").innerHTML = `
         <h2 class="block-title">Риски</h2>
-        <div class="compact-list">${DATA.risks.map(r => `
+        <div class="compact-list">${openRisks.map(r => `
           <div class="compact-row">
-            <span class="dot"></span>
+            <span class="dot" style="background:${riskDot(r)}"></span>
             <span class="t">${esc(r.t)}</span>
-            <span class="m">${esc(r.m)}</span>
-          </div>`).join("")}</div>`;
+            <span class="m">${esc(r.m || shortDate(r.deadline))}</span>
+          </div>`).join("") || `<p class="hint-risks">Нет открытых рисков</p>`}</div>
+        <button type="button" class="linkish" id="goto-risks">Все риски →</button>`;
     }
 
     function renderDonut() {
@@ -830,6 +1146,8 @@
       const C = 2 * Math.PI * 14;
       const openLen = (open / total) * C;
       const failLen = (fail / total) * C;
+      const openActive = filter === "open" ? " active-seg" : "";
+      const failActive = filter === "fail" ? " active-seg" : "";
       document.getElementById("status-block").innerHTML = `
         <h2 class="block-title">Статусы</h2>
         <div class="status-chart">
@@ -846,16 +1164,27 @@
                 </linearGradient>
               </defs>
               <circle cx="18" cy="18" r="14" fill="none" stroke="#E8E0D8" stroke-width="4"/>
-              <circle cx="18" cy="18" r="14" fill="none" stroke="url(#gOk)" stroke-width="4"
-                stroke-dasharray="${openLen.toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="0"/>
-              <circle cx="18" cy="18" r="14" fill="none" stroke="url(#gCrit)" stroke-width="4"
-                stroke-dasharray="${failLen.toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-openLen).toFixed(2)}"/>
+              <circle class="seg${openActive}" data-filter="open" cx="18" cy="18" r="14" fill="none" stroke="url(#gOk)" stroke-width="4"
+                stroke-dasharray="${openLen.toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="0"
+                role="button" tabindex="0" aria-label="Фильтр: в работе"/>
+              <circle class="seg${failActive}" data-filter="fail" cx="18" cy="18" r="14" fill="none" stroke="url(#gCrit)" stroke-width="4"
+                stroke-dasharray="${failLen.toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-openLen).toFixed(2)}"
+                role="button" tabindex="0" aria-label="Фильтр: не исполнено"/>
             </svg>
-            <div class="mid"><strong>${total}</strong><span>задач</span></div>
+            <button type="button" class="mid" data-filter="all" aria-label="Сбросить фильтр, показать все">
+              <strong>${total}</strong><span>${filter === "all" ? "все" : "задач"}</span>
+            </button>
           </div>
           <div class="stat-legend">
-            <div><span><i class="swatch" style="background:#2C5F4A"></i>в работе</span><b>${open}</b></div>
-            <div><span><i class="swatch" style="background:#9E3B33"></i>не исполнено</span><b>${fail}</b></div>
+            <button type="button" data-filter="open" class="${filter === "open" ? "active" : ""}">
+              <span><i class="swatch" style="background:#2C5F4A"></i>в работе</span><b>${open}</b>
+            </button>
+            <button type="button" data-filter="fail" class="${filter === "fail" ? "active" : ""}">
+              <span><i class="swatch" style="background:#9E3B33"></i>не исполнено</span><b>${fail}</b>
+            </button>
+            <button type="button" data-filter="all" class="${filter === "all" ? "active" : ""}">
+              <span><i class="swatch" style="background:#8A8580"></i>все</span><b>${tasks.length}</b>
+            </button>
           </div>
         </div>`;
     }
@@ -873,11 +1202,46 @@
         list.innerHTML = `<div class="compact-row"><span></span><span class="t" style="color:var(--muted)">Нет задач</span><span></span></div>`;
         return;
       }
+      const order = [];
+      const groups = new Map();
+      rows.forEach(x => {
+        const block = (x.block || "Прочее").trim();
+        if (!groups.has(block)) {
+          groups.set(block, []);
+          order.push(block);
+        }
+        groups.get(block).push(x);
+      });
+      list.innerHTML = order.map(block => {
+        const items = groups.get(block).map(x => `
+          <button type="button" class="compact-row task-tap" data-task-index="${x._i}" aria-label="Открыть задачу: ${esc(x.t)}">
+            <span class="dot" style="background:${x.status === "Не исполнено" ? "var(--critical)" : "var(--kpi)"}"></span>
+            <span class="t">${esc(x.t)}</span>
+            <span class="m">${esc(x.m)}</span>
+          </button>`).join("");
+        return `<div class="group-head">${esc(block)}</div>${items}`;
+      }).join("");
+    }
+
+    function renderRisks() {
+      const list = document.getElementById("risk-list");
+      const rows = (DATA.risks || [])
+        .map((x, i) => ({ ...x, _i: i }))
+        .filter(x => {
+          if (riskFilter === "all") return true;
+          if (riskFilter === "done") return x.status === "Выполнено";
+          if (riskFilter === "critical") return x.risk_level === "Критический";
+          return x.status === "В работе";
+        });
+      if (!rows.length) {
+        list.innerHTML = `<div class="compact-row"><span></span><span class="t" style="color:var(--muted)">Нет рисков</span><span></span></div>`;
+        return;
+      }
       list.innerHTML = rows.map(x => `
-        <button type="button" class="compact-row task-tap" data-task-index="${x._i}" aria-label="Открыть задачу: ${esc(x.t)}">
-          <span class="dot" style="background:${x.status === "Не исполнено" ? "var(--critical)" : "var(--kpi)"}"></span>
+        <button type="button" class="compact-row risk-tap" data-risk-index="${x._i}" aria-label="Открыть риск: ${esc(x.t)}">
+          <span class="dot" style="background:${riskDot(x)}"></span>
           <span class="t">${esc(x.t)}</span>
-          <span class="m">${esc(x.m)}</span>
+          <span class="m">${esc(x.m || shortDate(x.deadline))}</span>
         </button>`).join("");
     }
 
@@ -885,12 +1249,8 @@
       document.querySelectorAll(".nav button").forEach(btn => {
         btn.addEventListener("click", () => {
           detailOpen = false;
-          document.querySelectorAll(".nav button").forEach(b => {
-            b.classList.remove("active");
-            b.setAttribute("aria-selected", "false");
-          });
-          btn.classList.add("active");
-          btn.setAttribute("aria-selected", "true");
+          riskDetailOpen = false;
+          setNav(btn.dataset.tab);
           showPanel(btn.dataset.tab);
         });
       });
@@ -898,10 +1258,21 @@
       document.getElementById("filters").addEventListener("click", (e) => {
         const chip = e.target.closest("button");
         if (!chip) return;
-        document.querySelectorAll("#filters button").forEach(c => c.classList.remove("active"));
-        chip.classList.add("active");
-        filter = chip.dataset.filter;
-        renderTasks();
+        setTaskFilter(chip.dataset.filter);
+      });
+
+      document.getElementById("status-block").addEventListener("click", (e) => {
+        const hit = e.target.closest("[data-filter]");
+        if (!hit) return;
+        setTaskFilter(hit.dataset.filter);
+      });
+
+      document.getElementById("status-block").addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        const hit = e.target.closest("[data-filter]");
+        if (!hit) return;
+        e.preventDefault();
+        setTaskFilter(hit.dataset.filter);
       });
 
       document.getElementById("task-list").addEventListener("click", (e) => {
@@ -913,12 +1284,37 @@
       document.getElementById("task-back").addEventListener("click", () => {
         closeTaskDetail();
       });
+
+      document.getElementById("risk-filters").addEventListener("click", (e) => {
+        const chip = e.target.closest("button");
+        if (!chip) return;
+        setRiskFilter(chip.dataset.riskFilter);
+      });
+
+      document.getElementById("risk-list").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-risk-index]");
+        if (!btn) return;
+        openRiskDetail(Number(btn.dataset.riskIndex));
+      });
+
+      document.getElementById("risk-back").addEventListener("click", () => {
+        closeRiskDetail();
+      });
+
+      document.getElementById("risks-preview").addEventListener("click", (e) => {
+        if (!e.target.closest("#goto-risks")) return;
+        detailOpen = false;
+        riskDetailOpen = false;
+        setNav("risks");
+        showPanel("risks");
+      });
     }
 
     function paint() {
       renderProject();
       renderDonut();
       renderTasks();
+      renderRisks();
     }
 
     async function boot() {

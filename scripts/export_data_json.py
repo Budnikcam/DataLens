@@ -5,10 +5,19 @@ from __future__ import annotations
 
 import csv
 import json
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
+
+# Plausible explanations for overdue / failed tasks (status «Не исполнено»)
+TASK_EXPLANATIONS = {
+    "Письмо в АО «Прут» по оценке совместной работы": (
+        "Ответ АО «Прут» не получен в согласованный срок; повторный запрос направлен, "
+        "оценка совместной работы задерживается на стороне контрагента."
+    ),
+}
 
 
 def read_csv(name: str) -> list[dict[str, str]]:
@@ -30,6 +39,12 @@ def short_date(iso: str) -> str:
     if len(parts) >= 3:
         return f"{parts[2]}.{parts[1]}"
     return iso
+
+
+def full_date_lbl(iso: str) -> str:
+    if iso and len(iso) >= 10:
+        return f"{iso[8:10]}.{iso[5:7]}.{iso[:4]}"
+    return short_date(iso)
 
 
 def deadline_label(row: dict[str, str]) -> str:
@@ -66,12 +81,44 @@ TASK_LABELS = [
     "ЖК «Берег» · справка",
 ]
 
+RISK_LABELS = {
+    ("1", "2026-01-13"): "Финансирование · доведено 489",
+    ("1", "2026-01-20"): "Финансирование · доп. соглашение",
+    ("1", "2026-01-24"): "Финансирование · остаток 586 млн",
+    ("2", "2026-01-15"): "Неучтенный объём · ПСД",
+    ("2", "2026-02-15"): "Неучтенный объём · согласование",
+    ("2", "2026-02-28"): "Неучтенный объём · лимиты",
+}
+
 SUPPLY_SHORT = {
     "Инженерное оборудование": "Инж. оборуд.",
     "Технологическое оборудование": "Тех. оборуд.",
     "Материалы": "Материалы",
     "Итого": "Итого",
 }
+
+
+def compute_smr_days(start_iso: str, end_iso: str, readiness: float, as_of: date | None = None) -> dict:
+    as_of = as_of or date.today()
+    y, m, d = (int(x) for x in start_iso.split("-"))
+    start = date(y, m, d)
+    y2, m2, d2 = (int(x) for x in end_iso.split("-"))
+    end = date(y2, m2, d2)
+    total = max(1, (end - start).days)
+    elapsed = max(0, (as_of - start).days)
+    remaining = max(0, (end - as_of).days)
+    time_pct = round(100.0 * elapsed / total, 2)
+    alert = time_pct - readiness > 10
+    return {
+        "elapsed": elapsed,
+        "total": total,
+        "remaining": remaining,
+        "readinessPct": readiness,
+        "timePct": time_pct,
+        "alert": alert,
+        "start": start_iso,
+        "end": end_iso,
+    }
 
 
 def build() -> dict:
@@ -132,54 +179,65 @@ def build() -> dict:
             }
         )
 
-    # One compact row per unique problem_id (open / critical deadline)
     risks: list[dict] = []
-    seen: set[str] = set()
     for r in risk_rows:
         pid = r["problem_id"]
-        if pid in seen:
-            continue
-        seen.add(pid)
-        if pid == "1":
-            t = "Финансирование 489 / 1082"
-            # prefer latest open deadline among rows with same id
-            open_deadlines = [
-                x["deadline"]
-                for x in risk_rows
-                if x["problem_id"] == pid and x.get("status") == "В работе" and x.get("deadline")
-            ]
-            m = short_date(max(open_deadlines) if open_deadlines else r["deadline"])
-        else:
-            t = "Неучтенный объём · ПСД"
-            open_deadlines = [
-                x["deadline"]
-                for x in risk_rows
-                if x["problem_id"] == pid and x.get("status") == "В работе" and x.get("deadline")
-            ]
-            m = short_date(min(open_deadlines) if open_deadlines else r["deadline"])
-        risks.append({"t": t, "m": m})
-
-    tasks = []
-    for i, r in enumerate(task_rows):
-        label = TASK_LABELS[i] if i < len(TASK_LABELS) else (r["task"][:42] + "…")
-        tasks.append(
+        dl = r.get("deadline") or ""
+        label = RISK_LABELS.get((pid, dl))
+        if not label:
+            label = (r.get("solution") or r.get("problem") or "Риск")[:40]
+        risks.append(
             {
                 "t": label,
-                "m": deadline_label(r),
+                "problem": r.get("problem") or "",
+                "impact": r.get("impact") or "",
+                "risk_level": r.get("risk_level") or "",
+                "solution": r.get("solution") or "",
+                "owner": r.get("owner") or "",
+                "deadline": dl,
+                "m": short_date(dl),
                 "status": r.get("status") or "В работе",
             }
         )
 
+    tasks = []
+    for i, r in enumerate(task_rows):
+        label = TASK_LABELS[i] if i < len(TASK_LABELS) else (r["task"][:42] + "…")
+        status = r.get("status") or "В работе"
+        full_task = r.get("task") or ""
+        explanation = ""
+        if status == "Не исполнено":
+            explanation = TASK_EXPLANATIONS.get(full_task, "")
+            if not explanation:
+                explanation = (
+                    "Срок просрочен; причина уточняется у ответственного, "
+                    "повторный контроль поставлен в план."
+                )
+        tasks.append(
+            {
+                "t": label,
+                "description": full_task,
+                "responsible": r.get("responsible") or "",
+                "explanation": explanation,
+                "m": deadline_label(r),
+                "deadline": (r.get("deadline") or "").strip(),
+                "deadline_type": r.get("deadline_type") or "",
+                "status": status,
+                "block": r.get("block") or "",
+            }
+        )
+
     end = card.get("directive_end") or card.get("contract_end") or ""
-    end_lbl = short_date(end)
-    if end and len(end) >= 4:
-        end_lbl = f"{end[8:10]}.{end[5:7]}.{end[:4]}" if len(end) >= 10 else short_date(end)
+    end_lbl = full_date_lbl(end)
+    start = card.get("start_date") or "2019-06-05"
+    readiness = fnum(card["readiness_fact_pct"])
+    smr_days = compute_smr_days(start, end or "2027-06-30", readiness)
 
     return {
         "project": {
             "name": card["object_name"],
-            "meta": f"Генподряд · {card['gen_contractor']} · до {end_lbl}",
-            "readiness_fact": fnum(card["readiness_fact_pct"]),
+            "meta": f"Генподряд · {card['gen_contractor']} · срок до {end_lbl}",
+            "readiness_fact": readiness,
             "readiness_plan": fnum(card["readiness_plan_pct"]),
             "delta_pp": fnum(card["delta_readiness_pp"]),
             "contract_mln": round(fnum(card["contract_cost_mln"])),
@@ -193,7 +251,10 @@ def build() -> dict:
             "workers_fact": round(fnum(card["workers_fact"])),
             "workers_plan": round(fnum(card["workers_plan"])),
             "supply_total_pct": supply_total,
+            "start_date": start,
+            "directive_end": end,
         },
+        "smrDays": smr_days,
         "supply": supply,
         "finance": finance,
         "labor": labor,
