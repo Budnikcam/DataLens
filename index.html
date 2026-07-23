@@ -769,7 +769,7 @@
     const FALLBACK = {
       project: {
         name: "ЖК «Северный»",
-        meta: "Генподряд · ООО «Успех» · срок до 30.06.2027",
+        meta: "Генподряд · ООО «Успех» · срок 30.06.2027",
         readiness_fact: 54.71,
         readiness_plan: 55,
         delta_pp: -0.29,
@@ -1145,15 +1145,18 @@
           </div>`;
         }).join("")}</div>`;
 
-      const openRisks = (DATA.risks || []).filter(r => r.status === "В работе").slice(0, 3);
+      const openCriticalRisks = (DATA.risks || [])
+        .map((r, i) => ({ ...r, _i: i }))
+        .filter(r => r.risk_level === "Критический" && r.status === "В работе")
+        .slice(0, 3);
       document.getElementById("risks-preview").innerHTML = `
         <h2 class="block-title">Риски</h2>
-        <div class="compact-list">${openRisks.map(r => `
-          <div class="compact-row">
+        <div class="compact-list">${openCriticalRisks.map(r => `
+          <button type="button" class="compact-row risk-tap" data-risk-index="${r._i}" aria-label="Открыть риск: ${esc(r.t)}">
             <span class="dot" style="background:${riskDot(r)}"></span>
             <span class="t">${esc(r.t)}</span>
             <span class="m">${esc(r.m || shortDate(r.deadline))}</span>
-          </div>`).join("") || `<p class="hint-risks">Нет открытых рисков</p>`}</div>
+          </button>`).join("") || `<p class="hint-risks">Нет открытых критических рисков</p>`}</div>
         <button type="button" class="linkish" id="goto-risks">Все риски →</button>`;
     }
 
@@ -1249,7 +1252,7 @@
         .filter(x => {
           if (riskFilter === "all") return true;
           if (riskFilter === "done") return x.status === "Выполнено";
-          if (riskFilter === "critical") return x.risk_level === "Критический";
+          if (riskFilter === "critical") return x.risk_level === "Критический" && x.status === "В работе";
           return x.status === "В работе";
         });
       if (!rows.length) {
@@ -1321,6 +1324,11 @@
       });
 
       document.getElementById("risks-preview").addEventListener("click", (e) => {
+        const riskBtn = e.target.closest("[data-risk-index]");
+        if (riskBtn) {
+          openRiskDetail(Number(riskBtn.dataset.riskIndex));
+          return;
+        }
         if (!e.target.closest("#goto-risks")) return;
         detailOpen = false;
         riskDetailOpen = false;
