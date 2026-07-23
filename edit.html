@@ -281,24 +281,57 @@
       color: var(--muted);
       margin: 0;
     }
-    .publish-box {
+    .setup-steps {
       display: grid;
-      gap: 12px;
+      gap: 16px;
+      margin: 0 0 18px;
+      padding: 0;
+      list-style: none;
+      counter-reset: setup;
     }
-    .publish-box .lead {
-      margin: 0;
-      font-size: 0.9rem;
+    .setup-steps li {
+      position: relative;
+      padding-left: 40px;
+      font-size: 0.92rem;
       color: var(--ink);
     }
-    .publish-box .hint {
-      margin: 0;
+    .setup-steps li::before {
+      counter-increment: setup;
+      content: counter(setup);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(44, 95, 74, 0.1);
+      color: var(--kpi);
       font-size: 0.82rem;
-      color: var(--muted);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 28px;
+      text-align: center;
     }
-    .btn-publish {
-      width: 100%;
+    .setup-steps a { font-weight: 500; }
+    .setup-ready {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 16px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(107, 143, 122, 0.1);
+      border: 1px solid rgba(107, 143, 122, 0.28);
+      font-size: 0.9rem;
+    }
+    .setup-ready span { color: var(--ink); }
+    .actions-bar .inner .btn-primary {
+      flex: 1 1 200px;
       font-size: 1rem;
-      padding: 16px 18px;
+      padding: 14px 18px;
     }
     .versions-list {
       display: grid;
@@ -417,7 +450,7 @@
     <header class="top">
       <div>
         <h1>Редактор данных</h1>
-        <p class="sub">Сохранение мгновенное. Каждое сохранение — новая версия; старые не удаляются.</p>
+        <p class="sub">Правки → «Сохранить на сайт» → через 1–2 мин видят все. Старые версии не удаляются.</p>
       </div>
       <a class="back" href="./">← К дашборду</a>
     </header>
@@ -425,23 +458,53 @@
     <div id="status" class="status" role="status"></div>
     <div id="toast" class="toast" role="status" aria-live="polite">Сохранено</div>
 
+    <section class="card" id="setup-card">
+      <h2>Подключение к сайту</h2>
+      <p class="section-lead">Один раз: доступ к репозиторию и токен. Дальше достаточно кнопки «Сохранить на сайт».</p>
+
+      <div id="setup-form">
+        <ol class="setup-steps">
+          <li>
+            Примите приглашение в репозиторий
+            <a href="https://github.com/Budnikcam/DataLens" target="_blank" rel="noopener">Budnikcam/DataLens</a>
+            (письмо на <strong>dodova.m@yandex.ru</strong> или раздел
+            <a href="https://github.com/notifications" target="_blank" rel="noopener">уведомлений GitHub</a>).
+          </li>
+          <li>
+            Создайте
+            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained PAT</a>:
+            доступ только к репозиторию <strong>Budnikcam/DataLens</strong>,
+            разрешение <strong>Contents: Read and Write</strong>. Другие права не нужны.
+          </li>
+          <li>Вставьте токен ниже — он сохранится только в этом браузере (в репозиторий не попадёт).</li>
+        </ol>
+        <div class="pat-box">
+          <div>
+            <label for="pat">Токен GitHub</label>
+            <input id="pat" type="password" autocomplete="off" placeholder="github_pat_… или ghp_…" />
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-soft" id="pat-save">Запомнить токен</button>
+            <button type="button" class="btn btn-ghost" id="pat-clear">Забыть токен</button>
+          </div>
+          <p class="hint">Токен хранится в localStorage вашего браузера. Не пересылайте его в чатах.</p>
+        </div>
+      </div>
+
+      <div id="setup-ready" class="setup-ready hidden">
+        <span>Токен сохранён. Можно править данные и нажимать «Сохранить на сайт».</span>
+        <button type="button" class="btn btn-ghost" id="pat-change">Сменить токен</button>
+      </div>
+    </section>
+
     <section class="card">
       <h2>Сохранение</h2>
-      <p class="section-lead">Данные хранятся в этом браузере. Старые версии накапливаются и не удаляются при сохранении.</p>
+      <p class="section-lead">Каждое сохранение на сайт создаёт новый файл в <code>versions/</code> и обновляет общий <code>data.json</code>. Старые версии остаются.</p>
       <div class="grid">
         <div>
           <label for="note">Заметка к версии (необязательно)</label>
           <input id="note" type="text" maxlength="200" placeholder="Например: обновили готовность и риски" />
         </div>
-      </div>
-    </section>
-
-    <section class="card" id="publish-card">
-      <h2>Публикация для всех</h2>
-      <div class="publish-box">
-        <p class="lead">Чтобы все посетители сайта видели ваши правки, скачайте файл и отправьте Ивану (или замените <code>data.json</code> на сервере).</p>
-        <button type="button" class="btn btn-primary btn-publish" id="btn-publish">Скачать для публикации</button>
-        <p class="hint">Правки в редакторе видны вам сразу на дашборде в <em>этом</em> браузере. У других устройств — после обновления серверного файла.</p>
       </div>
     </section>
 
@@ -513,35 +576,17 @@
     </section>
 
     <section class="card">
-      <h2>Версии</h2>
-      <p class="section-lead">История сохранений в этом браузере. Старые версии не удаляются.</p>
+      <h2>Версии в этом браузере</h2>
+      <p class="section-lead">Черновики и история сохранений на этом устройстве. На сайте хранится отдельный архив в папке versions/.</p>
       <div id="versions-list" class="versions-list">
         <p class="empty">Загрузка…</p>
       </div>
     </section>
 
-    <section class="card">
-      <details class="dev-extra" id="dev-extra">
-        <summary>Дополнительно для разработчика</summary>
-        <div class="pat-box">
-          <p class="hint">Опционально: запись напрямую в GitHub. Обычному редактору не нужно.</p>
-          <div>
-            <label for="pat">Fine-grained PAT (contents:write на Budnikcam/DataLens)</label>
-            <input id="pat" type="password" autocomplete="off" placeholder="github_pat_… или ghp_…" />
-          </div>
-          <div class="btn-row">
-            <button type="button" class="btn btn-soft" id="pat-save">Запомнить токен</button>
-            <button type="button" class="btn btn-ghost" id="pat-clear">Забыть токен</button>
-            <button type="button" class="btn" id="btn-github">Сохранить в GitHub</button>
-          </div>
-        </div>
-      </details>
-    </section>
-
     <div class="actions-bar">
       <div class="inner">
-        <button type="button" class="btn btn-primary" id="btn-save">Сохранить</button>
-        <button type="button" class="btn" id="btn-download">Скачать версию</button>
+        <button type="button" class="btn btn-primary" id="btn-save">Сохранить на сайт</button>
+        <button type="button" class="btn" id="btn-download">Скачать копию</button>
       </div>
     </div>
   </div>
@@ -1004,10 +1049,6 @@
       URL.revokeObjectURL(a.href);
     }
 
-    function downloadPublishFile(data) {
-      downloadJson(data, "data.json");
-    }
-
     function saveLocal(opts) {
       const note = (opts && opts.note != null ? opts.note : ($("note").value || "")).trim();
       const data = opts && opts.data ? opts.data : collectFromDom();
@@ -1026,20 +1067,23 @@
       return { id, savedAt, data };
     }
 
-    function savePrimary() {
-      try {
-        saveLocal({});
-        showToast("Сохранено");
-        clearStatus();
-        showStatus(
-          "Сохранено в этом браузере. Дашборд подхватит данные при обновлении. Чтобы все посетители видели правки — нажмите «Скачать для публикации» и отправьте файл Ивану.",
-          "ok"
-        );
-        $("publish-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
-      } catch (err) {
-        console.error(err);
-        showStatus("Не удалось сохранить: " + (err.message || String(err)), "err");
+    function refreshSetupUi() {
+      const hasPat = !!(localStorage.getItem(LS_PAT) || "").trim();
+      const form = $("setup-form");
+      const ready = $("setup-ready");
+      if (!form || !ready) return;
+      if (hasPat) {
+        form.classList.add("hidden");
+        ready.classList.remove("hidden");
+        $("pat").value = localStorage.getItem(LS_PAT) || "";
+      } else {
+        form.classList.remove("hidden");
+        ready.classList.add("hidden");
       }
+    }
+
+    function savePrimary() {
+      saveToGitHub();
     }
 
     function makeCurrent(id) {
@@ -1090,7 +1134,7 @@
       const box = $("versions-list");
       const list = readVersions().slice().reverse();
       if (!list.length) {
-        box.innerHTML = '<p class="empty">Пока нет сохранённых версий — нажмите «Сохранить».</p>';
+        box.innerHTML = '<p class="empty">Пока нет сохранённых версий — нажмите «Сохранить на сайт».</p>';
         return;
       }
       box.innerHTML = "";
@@ -1139,7 +1183,7 @@
       });
     }
 
-    /* ---------- GitHub Contents API (optional, developer) ---------- */
+    /* ---------- GitHub Contents API (primary publish) ---------- */
     function getPat() {
       return ($("pat").value || localStorage.getItem(LS_PAT) || "").trim();
     }
@@ -1166,13 +1210,39 @@
       return new TextDecoder().decode(bytes);
     }
 
-    async function ghGet(path, pat) {
+    function ghError(status, path, body) {
+      const err = new Error(`GitHub ${status} ${path}`);
+      err.status = status;
+      err.path = path;
+      err.body = body || "";
+      return err;
+    }
+
+    function friendlyGhError(err) {
+      const status = err && err.status;
+      if (status === 401) {
+        return "Токен неверный или истёк. Создайте новый PAT (шаг 2) и вставьте снова.";
+      }
+      if (status === 404) {
+        return "Нет доступа к репозиторию. Примите приглашение collaborator (шаг 1) и проверьте, что токен выдан на Budnikcam/DataLens.";
+      }
+      if (status === 403) {
+        return "Недостаточно прав у токена. Нужен Contents: Read and Write только на Budnikcam/DataLens.";
+      }
+      if (status === 409 || status === 422) {
+        return "Конфликт версии файла на GitHub. Обновите страницу и попробуйте ещё раз.";
+      }
+      return "Не удалось опубликовать: " + ((err && err.message) || String(err));
+    }
+
+    async function ghGet(path, pat, opts) {
+      const allowMissing = !!(opts && opts.allowMissing);
       const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`;
       const res = await fetch(url, { headers: apiHeaders(pat) });
-      if (res.status === 404) return null;
+      if (res.status === 404 && allowMissing) return null;
       if (!res.ok) {
         const t = await res.text();
-        throw new Error(`GET ${path}: ${res.status} ${t}`);
+        throw ghError(res.status, path, t);
       }
       return res.json();
     }
@@ -1192,7 +1262,7 @@
       });
       if (!res.ok) {
         const t = await res.text();
-        throw new Error(`PUT ${path}: ${res.status} ${t}`);
+        throw ghError(res.status, path, t);
       }
       return res.json();
     }
@@ -1200,26 +1270,35 @@
     async function saveToGitHub() {
       const pat = getPat();
       if (!pat) {
-        showStatus("Вставьте GitHub PAT или используйте обычное «Сохранить» / «Скачать для публикации».", "err");
+        refreshSetupUi();
+        $("setup-form").classList.remove("hidden");
+        $("setup-ready").classList.add("hidden");
+        showStatus("Сначала вставьте токен GitHub (шаг 3 выше) и нажмите «Запомнить токен».", "err");
+        $("setup-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        $("pat").focus();
         return;
       }
-      const btn = $("btn-github");
+
+      const btn = $("btn-save");
       btn.disabled = true;
       clearStatus();
-      showStatus("Сохраняем в GitHub…", "info");
+      showStatus("Публикуем на сайт…", "info");
 
       try {
-        // Also keep local history
-        const { data, id } = saveLocal({});
+        const note = ($("note").value || "").trim();
+        const { data, id, savedAt } = saveLocal({ keepNote: true });
         const filename = id + ".json";
         const path = "versions/" + filename;
         const contentStr = JSON.stringify(data, null, 2) + "\n";
-        const note = "";
-        const savedAt = new Date().toISOString();
 
+        // 1) GET current data.json sha (also validates token / invite)
+        const root = await ghGet("data.json", pat);
+
+        // 2) PUT new version file (create; no sha)
         await ghPut(path, contentStr, `data: add version ${filename}`, pat);
 
-        const manFile = await ghGet("versions/manifest.json", pat);
+        // 3) GET/update versions/manifest.json (append)
+        const manFile = await ghGet("versions/manifest.json", pat, { allowMissing: true });
         let manifest = { versions: [] };
         if (manFile && manFile.content) {
           manifest = JSON.parse(fromBase64(manFile.content.replace(/\n/g, "")));
@@ -1235,16 +1314,18 @@
           manFile?.sha
         );
 
-        const root = await ghGet("data.json", pat);
+        // 4) PUT data.json (update with sha)
         await ghPut(
           "data.json",
           contentStr,
           `data: set current from ${filename}`,
           pat,
-          root?.sha
+          root.sha
         );
-        const preview = await ghGet("preview/data.json", pat);
-        if (preview) {
+
+        // Keep preview in sync when present
+        const preview = await ghGet("preview/data.json", pat, { allowMissing: true });
+        if (preview && preview.sha) {
           await ghPut(
             "preview/data.json",
             contentStr,
@@ -1254,15 +1335,16 @@
           );
         }
 
-        showStatus(
-          "Записано в GitHub: " + filename +
-            ". Pages обновится через 1–2 минуты.",
-          "ok"
-        );
-        showToast("Сохранено");
+        $("note").value = "";
+        showStatus("Опубликовано. Через 1–2 мин обновите дашборд.", "ok");
+        showToast("Опубликовано");
+        refreshSetupUi();
       } catch (err) {
         console.error(err);
-        showStatus("Ошибка GitHub: " + (err.message || String(err)), "err");
+        showStatus(friendlyGhError(err), "err");
+        if (err && (err.status === 401 || err.status === 404 || err.status === 403)) {
+          $("setup-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
       } finally {
         btn.disabled = false;
       }
@@ -1280,6 +1362,7 @@
 
     function bindEditor() {
       $("pat").value = localStorage.getItem(LS_PAT) || "";
+      refreshSetupUi();
 
       $("pat-save").addEventListener("click", () => {
         const v = $("pat").value.trim();
@@ -1288,34 +1371,30 @@
           return;
         }
         localStorage.setItem(LS_PAT, v);
-        showStatus("Токен сохранён в этом браузере.", "ok");
+        refreshSetupUi();
+        showStatus("Токен сохранён в этом браузере. Можно нажимать «Сохранить на сайт».", "ok");
       });
 
       $("pat-clear").addEventListener("click", () => {
         localStorage.removeItem(LS_PAT);
         $("pat").value = "";
+        refreshSetupUi();
         showStatus("Токен удалён из браузера.", "info");
+      });
+
+      $("pat-change").addEventListener("click", () => {
+        $("setup-form").classList.remove("hidden");
+        $("setup-ready").classList.add("hidden");
+        $("pat").focus();
       });
 
       $("btn-save").addEventListener("click", () => savePrimary());
 
       $("btn-download").addEventListener("click", () => {
         const data = collectFromDom();
-        const name = versionFilename();
-        downloadJson(data, name);
-        showStatus("Скачан файл " + name + ". Локальные версии не затронуты.", "ok");
+        downloadJson(data, "data.json");
+        showStatus("Скачана копия data.json (для себя). На сайт это не публикует.", "ok");
       });
-
-      $("btn-publish").addEventListener("click", () => {
-        const data = collectFromDom();
-        downloadPublishFile(data);
-        showStatus(
-          "Скачан data.json. Отправьте файл Ивану — он заменит данные на сайте для всех посетителей.",
-          "ok"
-        );
-      });
-
-      $("btn-github").addEventListener("click", () => saveToGitHub());
 
       document.querySelectorAll("[data-add]").forEach((btn) => {
         btn.addEventListener("click", () => {
